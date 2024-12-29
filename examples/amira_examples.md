@@ -34,7 +34,7 @@ Ce document explique comment tester les fonctionnalités implémentées dans la 
 
 ### 1. Recherche d'un Enregistrement
 
-**Fichier d'Entrée** : `example_file.dat`
+**Fichier d'Entrée** : `amira_file.dat`
 
 **Commande dans le programme** :
 ```
