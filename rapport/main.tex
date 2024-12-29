@@ -1,0 +1,161 @@
+\documentclass[a4paper, 12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\title{Rapport}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Introduction}
+The task involves implementing several operations for managing file records in a simplified file system simulator. These operations include:
+
+\begin{itemize}
+    \item Searching for a record by ID.
+    \item Logical deletion of a record.
+    \item Physical deletion of a record.
+    \item File defragmentation to remove logically deleted records.
+    \item Renaming a file while updating associated metadata.
+\end{itemize}
+
+This report explains the implementation, pseudocode, and examples for each operation.
+
+\section*{Functionality Overview}
+
+\subsection*{1. Search for a Record by ID}
+This function searches for a specific record in a file by its unique ID and displays the record's details if found.
+
+\subsubsection*{Pseudocode}
+\begin{verbatim}
+Open the file in read mode.
+For each record in the file:
+    If the record ID matches the target ID:
+        Display record details.
+        Exit.
+If no match is found:
+    Display "Record not found".
+Close the file.
+\end{verbatim}
+
+\subsubsection*{Example}
+\textbf{Input:} File \texttt{data.dat} containing:
+\begin{verbatim}
+ID: 1, Name: Alice, Address: Paris
+ID: 2, Name: Bob, Address: Berlin
+\end{verbatim}
+\textbf{Search for:} ID = 2.\newline
+\textbf{Output:} "Record found: ID: 2, Name: Bob, Address: Berlin".
+
+\subsection*{2. Logical Deletion of a Record}
+This function marks a record as deleted by setting its ID to -1, while keeping the record in the file.
+
+\subsubsection*{Pseudocode}
+\begin{verbatim}
+Open the file in read-write mode.
+For each record in the file:
+    If the record ID matches the target ID:
+        Set record ID to -1.
+        Write the updated record back to the file.
+        Exit.
+If no match is found:
+    Display "Record not found".
+Close the file.
+\end{verbatim}
+
+\subsubsection*{Example}
+\textbf{Input:} File \texttt{data.dat} containing:
+\begin{verbatim}
+ID: 1, Name: Alice, Address: Paris
+ID: 2, Name: Bob, Address: Berlin
+\end{verbatim}
+\textbf{Delete logically:} ID = 1.\newline
+\textbf{Output:} File \texttt{data.dat} updated to:
+\begin{verbatim}
+ID: -1, Name: Alice, Address: Paris
+ID: 2, Name: Bob, Address: Berlin
+\end{verbatim}
+
+\subsection*{3. Physical Deletion of a Record}
+This function removes a record from the file permanently by rewriting the file without the specified record.
+
+\subsubsection*{Pseudocode}
+\begin{verbatim}
+Open the file in read mode.
+Open a temporary file in write mode.
+For each record in the file:
+    If the record ID does not match the target ID:
+        Write the record to the temporary file.
+Replace the original file with the temporary file.
+Close both files.
+\end{verbatim}
+
+\subsubsection*{Example}
+\textbf{Input:} File \texttt{data.dat} containing:
+\begin{verbatim}
+ID: 1, Name: Alice, Address: Paris
+ID: 2, Name: Bob, Address: Berlin
+\end{verbatim}
+\textbf{Delete physically:} ID = 1.\newline
+\textbf{Output:} File \texttt{data.dat} updated to:
+\begin{verbatim}
+ID: 2, Name: Bob, Address: Berlin
+\end{verbatim}
+
+\subsection*{4. File Defragmentation}
+This function removes all logically deleted records (marked with ID = -1) and compacts the file.
+
+\subsubsection*{Pseudocode}
+\begin{verbatim}
+Open the file in read mode.
+Open a temporary file in write mode.
+For each record in the file:
+    If the record ID is not -1:
+        Write the record to the temporary file.
+Replace the original file with the temporary file.
+Close both files.
+\end{verbatim}
+
+\subsubsection*{Example}
+\textbf{Input:} File \texttt{data.dat} containing:
+\begin{verbatim}
+ID: -1, Name: Alice, Address: Paris
+ID: 2, Name: Bob, Address: Berlin
+\end{verbatim}
+\textbf{Defragment:}\newline
+\textbf{Output:} File \texttt{data.dat} updated to:
+\begin{verbatim}
+ID: 2, Name: Bob, Address: Berlin
+\end{verbatim}
+
+\subsection*{5. File Renaming}
+This function renames a file and updates the metadata to reflect the new name.
+
+\subsubsection*{Pseudocode}
+\begin{verbatim}
+Rename the file using system call.
+If successful:
+    Update metadata to reflect the new file name.
+    Display success message.
+Else:
+    Display error message.
+\end{verbatim}
+
+\subsubsection*{Example}
+\textbf{Input:} File name: \texttt{data.dat}.\newline
+\textbf{Rename to:} \texttt{records.dat}.\newline
+\textbf{Output:} "File 'data.dat' successfully renamed to 'records.dat'."
+
+\section*{Conclusion}
+The implementation of these file operations ensures robust functionality with error handling and user feedback. These tasks are critical for managing records in the simplified file system simulator.
+
+\end{document}
