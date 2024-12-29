@@ -6,7 +6,7 @@ Ce document explique comment tester les fonctionnalités implémentées dans la 
 
 ## Fichiers d'Entrée
 
-1. **`example_file.dat`**
+1. **`amira_file.dat`**
    - Un fichier binaire contenant 5 enregistrements. Chaque enregistrement est structuré comme suit :
      ```
      ID   Nom         Adresse
@@ -20,10 +20,10 @@ Ce document explique comment tester les fonctionnalités implémentées dans la 
    - Utilisez ce fichier pour tester les fonctionnalités de **recherche**, **suppression logique**, **suppression physique**, et **défragmentation**.
 
 2. **`logically_deleted.dat`**
-   - Identique à `example_file.dat`, sauf que l'enregistrement avec l'ID `3` est supprimé logiquement (marqué avec l'ID `-1`).
+   - Identique à `amira_file.dat`, sauf que l'enregistrement avec l'ID `3` est supprimé logiquement (marqué avec l'ID `-1`).
 
 3. **`physically_deleted.dat`**
-   - Identique à `example_file.dat`, sauf que l'enregistrement avec l'ID `3` est supprimé physiquement, laissant un espace dans le fichier.
+   - Identique à `amira_file.dat`, sauf que l'enregistrement avec l'ID `3` est supprimé physiquement, laissant un espace dans le fichier.
 
 4. **`defragmented.dat`**
    - Identique à `physically_deleted.dat`, mais les espaces sont supprimés, ne laissant que les enregistrements valides.
@@ -38,7 +38,7 @@ Ce document explique comment tester les fonctionnalités implémentées dans la 
 
 **Commande dans le programme** :
 ```
-Entrez le nom du fichier : example_file.dat
+Entrez le nom du fichier : amira_file.dat
 Entrez l'ID de l'enregistrement à rechercher : 3
 ```
 
@@ -53,11 +53,11 @@ Enregistrement trouvé : ID : 3, Nom : Charlie, Adresse : 789 Avenue des Érable
 
 ### 2. Suppression Logique
 
-**Fichier d'Entrée** : `example_file.dat`
+**Fichier d'Entrée** : `amira_file.dat`
 
 **Commande dans le programme** :
 ```
-Entrez le nom du fichier : example_file.dat
+Entrez le nom du fichier : amira_file.dat
 Entrez l'ID de l'enregistrement à supprimer logiquement : 3
 ```
 
@@ -115,17 +115,17 @@ Défragmentation terminée. 4 enregistrements restent dans le fichier 'physicall
 
 ### 5. Renommage d'un Fichier
 
-**Fichier d'Entrée** : `example_file.dat`
+**Fichier d'Entrée** : `amira_file.dat`
 
 **Commande dans le programme** :
 ```
-Entrez le nom actuel du fichier : example_file.dat
+Entrez le nom actuel du fichier : amira_file.dat
 Entrez le nouveau nom du fichier : renamed_file.dat
 ```
 
 **Résultat Attendu** :
 ```
-Fichier 'example_file.dat' renommé avec succès en 'renamed_file.dat'.
+Fichier 'amira_file.dat' renommé avec succès en 'renamed_file.dat'.
 Métadonnées mises à jour pour le fichier renommé 'renamed_file.dat'.
 ```
 
@@ -179,11 +179,11 @@ void createExampleFile(const char *filename) {
 }
 
 int main() {
-    createExampleFile("example_file.dat");
+    createExampleFile("amira_file.dat");
     return 0;
 }
 ```
 
-Compilez et exécutez ce script pour générer `example_file.dat`. Vous pouvez le modifier pour produire d'autres fichiers comme `logically_deleted.dat` ou `physically_deleted.dat`.
+Compilez et exécutez ce script pour générer `amira_file.dat`. Vous pouvez le modifier pour produire d'autres fichiers comme `logically_deleted.dat` ou `physically_deleted.dat`.
 
 ---
