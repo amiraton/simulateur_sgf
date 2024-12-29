@@ -164,10 +164,143 @@ void deFragmenterFichier(char *nomFichier) {
  * 
  * @details Vérifie si le fichier peut être renommé et met à jour les métadonnées.
  */
+// Fonction pour renommer un fichier
 void renommerFichier(char *ancienNom, char *nouveauNom) {
+    // VÃ©rifier si le fichier existe avant de renommer
     if (rename(ancienNom, nouveauNom) == 0) {
-        printf("Fichier '%s' renommé en '%s' avec succès.\n", ancienNom, nouveauNom);
+        printf("File '%s' successfully renamed to '%s'.\n", ancienNom, nouveauNom);
     } else {
         perror("Erreur lors du renommage du fichier");
     }
 }
+typedef struct {
+    char nom_fichier[50];          // Nom du fichier
+    int taille_blocs;              // Nombre de blocs utilisÃ©s
+    int taille_enregistrements;    // Nombre total d'enregistrements
+    int adresse_premier_bloc;      // Adresse du premier bloc
+    char mode_organisation[20];    // Mode d'organisation des donnÃ©es
+    char mode_interne[10];         // Mode interne (triÃ© ou non)
+} Metadonnees;
+
+Metadonnees fichiersMeta[MAX_FILES]; // Tableau des mÃ©tadonnÃ©es
+int nombreFichiersMeta = 0;          // Nombre de fichiers enregistrÃ©s dans les mÃ©tadonnÃ©es
+
+// Ajouter des mÃ©tadonnÃ©es pour un nouveau fichier
+void ajouterMetadonnees(char *nom, int taille_blocs, int taille_enreg, int adresse_bloc, char *mode_globale, char *mode_interne) {
+    if (nombreFichiersMeta >= MAX_FILES) {
+        fprintf(stderr, "Error: Metadata limit reached. Cannot add metadata for file '%s'.\n", nom);
+        return;
+    }
+
+    Metadonnees *meta = &fichiersMeta[nombreFichiersMeta++];
+    strcpy(meta->nom_fichier, nom);
+    meta->taille_blocs = taille_blocs;
+    meta->taille_enregistrements = taille_enreg;
+    meta->adresse_premier_bloc = adresse_bloc;
+    strcpy(meta->mode_organisation, mode_globale);
+    strcpy(meta->mode_interne, mode_interne);
+
+    printf("Metadata added for file '%s'.\n", nom);
+}
+
+// Afficher toutes les mÃ©tadonnÃ©es
+void afficherMetadonnees() {
+    if (nombreFichiersMeta == 0) {
+        printf("No metadata available.\n");
+        return;
+    }
+    int i;
+    for ( i = 0; i < nombreFichiersMeta; i++) {
+        printf("File: %s\nBlocks: %d\nRecords: %d\nFirst Block Address: %d\nGlobal Mode: %s\nInternal Mode: %s\n---\n",
+               fichiersMeta[i].nom_fichier,
+               fichiersMeta[i].taille_blocs,
+               fichiersMeta[i].taille_enregistrements,
+               fichiersMeta[i].adresse_premier_bloc,
+               fichiersMeta[i].mode_organisation,
+               fichiersMeta[i].mode_interne);
+    }
+}
+
+// Mettre Ã  jour les mÃ©tadonnÃ©es lors du renommage d'un fichier
+void miseAJourMetadonneesRenommage(char *ancienNom, char *nouveauNom) {
+	int i;
+    for (i = 0; i < nombreFichiersMeta; i++) {
+        if (strcmp(fichiersMeta[i].nom_fichier, ancienNom) == 0) {
+            strcpy(fichiersMeta[i].nom_fichier, nouveauNom);
+            printf("Metadata updated: file '%s' renamed to '%s'.\n", ancienNom, nouveauNom);
+            return;
+        }
+    }
+    fprintf(stderr, "Error: No metadata found for file '%s'. Cannot update.\n", ancienNom);
+}
+Fonction pour effectuer une suppression logique d'un fichier
+void MiseSuppressionLogique(char *nomFichier) {
+ int i ;
+  // Parcours des métadonnées pour trouver le fichier à supprimer
+    for ( i = 0; i < nombreFichiersMeta; i++) {
+        if (strcmp(fichiersMeta[i].nom_fichier, nomFichier) == 0) {
+            strcpy(fichiersMeta[i].nom_fichier, "SUPPRIME"); // Marquer comme supprimÃ©
+            printf("Logical deletion: file '%s' marked as deleted.\n", nomFichier);
+            return;
+        }
+    }
+    // Si le fichier n'est pas trouvé dans les métadonnées
+    fprintf(stderr, "Error: No metadata found for file '%s'. Cannot perform logical deletion.\n", nomFichier);
+}
+// Fonction pour effectuer une suppression physique d'un fichier
+void MisSuppressionPhysique(char *nomFichier) {
+ int i ; int j ;
+ // Parcours des métadonnées pour trouver le fichier à supprimer
+    for ( i = 0; i < nombreFichiersMeta; i++) {
+        if (strcmp(fichiersMeta[i].nom_fichier, nomFichier) == 0) {
+            // DÃ©calage pour Ã©craser l'entrÃ©e supprimÃ©e
+            for ( j = i; j < nombreFichiersMeta - 1; j++) {
+                fichiersMeta[j] = fichiersMeta[j + 1];
+            }
+            nombreFichiersMeta--;
+            printf("Physical deletion: Metadata for file '%s' has been removed.\n", nomFichier);
+            return;
+        }
+    }
+    fprintf(stderr, "Error: No metadata found for file '%s'. Cannot perform physical deletion.\n", nomFichier);
+}
+// Fonction pour mettre à jour les métadonnées après un compactage des fichiers
+void miseAJourMetadonneesApresCompactage() {
+    int writeIndex = 0;
+    // Mise à jour des métadonnées après compactage
+    int i ; int j ;
+    for ( i = 0; i < nombreFichiersMeta; i++) {
+        // Vérification du premier bloc utilisé par le fichier
+        if (fichiersMeta[i].adresse_premier_bloc >= writeIndex) {
+            // Si l'adresse du premier bloc a changé, il faut la mettre à jour
+            fichiersMeta[i].adresse_premier_bloc = -1; // On va devoir recalculer l'adresse du premier bloc
+            for ( j = 0; j < nombreBlocs; j++) {
+                if (!memoireSecondaire[j].libre && strcmp(memoireSecondaire[j].fichier, fichiersMeta[i].nom_fichier) == 0) {
+                    fichiersMeta[i].adresse_premier_bloc = j; // Recalcul de l'adresse
+                    break;
+                }
+            }
+            printf("Metadata updated for file '%s': First block address is now %d.\n", fichiersMeta[i].nom_fichier, fichiersMeta[i].adresse_premier_bloc);
+        }
+    }
+}
+//Mis a jour metadonnee apres insertion 
+void miseAJourMetadonneesApresInsertion(char *nomFichier, int blocsUtilises, int nouveauxEnregistrements, char *modeOrganisation) {
+    int i;
+    for (i = 0; i < nombreFichiersMeta; i++) {
+        if (strcmp(fichiersMeta[i].nom_fichier, nomFichier) == 0) {
+            fichiersMeta[i].taille_enregistrements += nouveauxEnregistrements;
+
+            if (strcmp(modeOrganisation, "chaînée") == 0) {
+                fichiersMeta[i].taille_blocs += blocsUtilises; // Mise à jour uniquement pour mode chaîné
+            }
+
+            printf("Mise à jour des métadonnées : fichier '%s', +%d blocs, +%d enregistrements.\n",
+                   nomFichier, blocsUtilises, nouveauxEnregistrements);
+            return;
+        }
+    }
+    fprintf(stderr, "Erreur : Métadonnées introuvables pour le fichier '%s'.\n", nomFichier);
+}
+
+
