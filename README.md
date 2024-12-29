@@ -13,7 +13,6 @@ L'objectif de ce projet est de concevoir un simulateur de système de gestion de
 ### Contributions des Étudiants
 
 - **Amira** : Opérations sur les Fichiers
-
 ---
 
 ## Fonctionnalités Principales
