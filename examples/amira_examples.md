@@ -164,11 +164,11 @@ void createExampleFile(const char *filename) {
     }
 
     Record records[] = {
-        {1, "Alice", "123 Rue Principale"},
-        {2, "Bob", "456 Rue des Ormes"},
-        {3, "Charlie", "789 Avenue des Érables"},
-        {4, "Diana", "101 Rue des Chênes"},
-        {5, "Eve", "202 Rue des Pins"}
+        {1, "Amira", "123 Rue Principale"},
+        {2, "Nadia", "456 Rue des Ormes"},
+        {3, "Souriya", "789 Avenue des Érables"},
+        {4, "Lamis", "101 Rue des Chênes"},
+        {5, "Rodayna", "202 Rue des Pins"}
     };
 
     for (int i = 0; i < 5; i++) {
