@@ -55,7 +55,7 @@ L'objectif de ce projet est de concevoir un simulateur de système de gestion de
 
 - **/src** : Contient le code source principal du projet.
 - **/examples** : Contient des exemples d'utilisation des fonctionnalités.
-- **/docs** : Documentation détaillée du projet.
+- **/rapport** : Documentation détaillée du projet.
 - **/README.md** : Ce fichier, qui explique le projet.
 
 ---
