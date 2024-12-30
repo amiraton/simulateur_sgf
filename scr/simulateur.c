@@ -116,45 +116,7 @@ void supprimerEnregistrementPhysique(char *nomFichier, int id) {
     }
 }
 
-/**
- * @brief Défragmente un fichier en supprimant les enregistrements marqués comme supprimés logiquement.
- * 
- * @param nomFichier Nom du fichier à défragmenter.
- * 
- * @details Tous les enregistrements valides sont transférés dans un fichier temporaire, 
- *          puis le fichier original est remplacé.
- */
-void deFragmenterFichier(char *nomFichier) {
-    FILE *fichier = fopen(nomFichier, "rb");
-    FILE *temp = fopen("temp.dat", "wb");
 
-    if (fichier == NULL || temp == NULL) {
-        perror("Erreur lors de l'ouverture du fichier pour la défragmentation");
-        return;
-    }
-
-    Enregistrement enregistrement;
-    int recordsMoved = 0;
-
-    while (fread(&enregistrement, sizeof(Enregistrement), 1, fichier) == 1) {
-        if (enregistrement.id != -1) { // Ignorer les enregistrements supprimés
-            fwrite(&enregistrement, sizeof(Enregistrement), 1, temp);
-            recordsMoved++;
-        }
-    }
-
-    fclose(fichier);
-    fclose(temp);
-
-    if (recordsMoved > 0) {
-        remove(nomFichier);
-        rename("temp.dat", nomFichier);
-        printf("Défragmentation terminée : %d enregistrements restants dans le fichier '%s'.\n", recordsMoved, nomFichier);
-    } else {
-        printf("Aucun enregistrement valide trouvé pour la défragmentation dans '%s'.\n", nomFichier);
-        remove("temp.dat");
-    }
-}
 
 /**
  * @brief Renomme un fichier.
