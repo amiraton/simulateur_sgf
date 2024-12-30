@@ -1,3 +1,154 @@
+/*
+Projet: Simulateur Simplifié d’un Système de Gestion de Fichiers (SGF)
+
+Intégration finale des contributions des étudiants :
+
+Lyna : Conception et Structure de la Mémoire Secondaire (MS)
+Hadjer : Gestion des Fichiers de Données
+Amira : Opérations sur les Fichiers
+Anfel : Gestion des Métadonnées
+Sirine : Menu Principal et Interface Utilisateur
+*/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <ctype.h>
+
+/* ---------------------------- Lyna : Conception et Structure de la Mémoire Secondaire ---------------------------- */
+#define FB 3 // Facteur de blocage
+#define MAX_BLOCKS 1000
+#define MAX_FILES 50
+
+// Structure représentant un bloc de la mémoire secondaire
+typedef struct {
+    int data[FB];    // Données du bloc
+    int ne;          // Nombre d'enregistrements dans le bloc
+    int nextBlock;   // Adresse du prochain bloc (mode chaîné)
+    bool libre;      // Indique si le bloc est libre ou occupé
+    char fichier[50]; // Nom du fichier occupant ce bloc
+} Bloc;
+
+Bloc memoireSecondaire[MAX_BLOCKS];
+int allocationTable[MAX_BLOCKS]; // Table d'allocation pour les blocs chaînés
+int nombreBlocs; // Nombre total de blocs dans la mémoire secondaire
+
+// Initialisation de la mémoire secondaire
+void initialiserMemoireSecondaire(int nbBlocs) {
+    nombreBlocs = nbBlocs;
+    int i;
+    for (i = 0; i < nombreBlocs; i++) {
+        memoireSecondaire[i].libre = true;
+        strcpy(memoireSecondaire[i].fichier, "");
+        memoireSecondaire[i].ne = 0;
+        memoireSecondaire[i].nextBlock = -1;
+    }
+    printf("Secondary memory initialized with %d blocks.\n", nombreBlocs);
+}
+
+// Fonction pour afficher les blocs en mode contigu
+void afficherBlocsContigus() {
+	int i;
+	int j;
+    printf("Affichage des blocs (mode contigu) :\n");
+    for ( i = 0; i < nombreBlocs; i++) {
+        if (!memoireSecondaire[i].libre) {
+            printf("Bloc %d (Fichier : %s, Enregistrements : %d) : ",
+                   i + 1, memoireSecondaire[i].fichier, memoireSecondaire[i].ne);
+            for (j = 0; j < memoireSecondaire[i].ne; j++) {
+                printf("%d ", memoireSecondaire[i].data[j]);
+            }
+            printf("\n");
+        }
+    }
+}
+
+// Fonction pour afficher les blocs en mode cha�n�
+void afficherBlocsChaines() {
+	int i;
+	int j;
+    printf("Affichage des blocs (mode cha�n�) :\n");
+    for (i = 0; i < nombreBlocs; i++) {
+        if (!memoireSecondaire[i].libre) {
+            printf("Bloc %d (Fichier : %s) : ", i + 1, memoireSecondaire[i].fichier);
+            for ( j = 0; j < memoireSecondaire[i].ne; j++) {
+                printf("%d ", memoireSecondaire[i].data[j]);
+            }
+            printf(" -> Bloc suivant : %d\n", memoireSecondaire[i].nextBlock + 1);
+        }
+    }
+}
+
+// Fonction pour g�n�rer la table d'allocation
+void genererTableAllocation() {
+	int i;
+    for ( i = 0; i < nombreBlocs - 1; i++) {
+        allocationTable[i] = i + 1; // Chaque bloc pointe vers le suivant
+    }
+    allocationTable[nombreBlocs - 1] = -1; // Dernier bloc marque la fin
+    printf("Table d'allocation g�n�r�e.\n");
+}
+
+// Compactage de la mémoire secondaire
+void compactageMemoireSecondaire() {
+    int writeIndex = 0;
+    int readIndex;
+    for (readIndex = 0; readIndex < nombreBlocs; readIndex++) {
+        if (!memoireSecondaire[readIndex].libre) {
+            memoireSecondaire[writeIndex] = memoireSecondaire[readIndex];
+            writeIndex++;
+        }
+    }
+    int i;
+
+    for (i = writeIndex; i < nombreBlocs; i++) {
+        memoireSecondaire[i].libre = true;
+        strcpy(memoireSecondaire[i].fichier, "");
+        memoireSecondaire[i].ne = 0;
+        memoireSecondaire[i].nextBlock = -1;
+    }
+
+    printf("Secondary memory compacted. All free blocks are moved to the end.\n");
+}
+
+// Vider la mémoire secondaire
+void viderMemoireSecondaire() {
+    initialiserMemoireSecondaire(nombreBlocs);
+    printf("Secondary memory cleared. All data has been erased.\n");
+}
+
+// fonction defragmentation apres suppression 
+void deFragmenterFichier(char *nomFichier) {
+    FILE *fichier = fopen(nomFichier, "rb");
+    FILE *temp = fopen("temp.dat", "wb");
+
+    if (fichier == NULL || temp == NULL) {
+        perror("Erreur lors de l'ouverture du fichier pour la défragmentation");
+        return;
+    }
+
+    Enregistrement enregistrement;
+    int recordsMoved = 0;
+
+    // Parcourir tous les enregistrements pour ignorer ceux marqués comme supprimés
+    while (fread(&enregistrement, sizeof(Enregistrement), 1, fichier) == 1) {
+        if (enregistrement.id != -1) { // Ignorer les enregistrements supprimés logiquement
+            fwrite(&enregistrement, sizeof(Enregistrement), 1, temp);
+            recordsMoved++;
+        }
+    }
+
+    fclose(fichier);
+    fclose(temp);
+
+    // Remplacer l'ancien fichier par le fichier défragmenté
+    remove(nomFichier);
+    rename("temp.dat", nomFichier);
+
+    printf("Defragmentation completed. %d records remain in file '%s'.\n", recordsMoved, nomFichier);
+}
+
 /* ---------------------------- Amira : Opérations sur les Fichiers ---------------------------- */
 
 /**
@@ -264,5 +415,22 @@ void miseAJourMetadonneesApresInsertion(char *nomFichier, int blocsUtilises, int
     }
     fprintf(stderr, "Erreur : Métadonnées introuvables pour le fichier '%s'.\n", nomFichier);
 }
+// Fonction pour effectuer la d�fragmentation des m�tadonn�es en r�organisant les fichiers
+void MisDefragmentation() {
+    int indexLibre = 0; int i ;
+    // Parcours des m�tadonn�es pour r�organiser les fichiers non supprim�s
+    for ( i = 0; i < nombreFichiersMeta; i++) {
+        if (strcmp(fichiersMeta[i].nom_fichier, "SUPPRIME") != 0) {
+            // Copier les données valides à l'index libre
+            if (i != indexLibre) {
+                fichiersMeta[indexLibre] = fichiersMeta[i];
+            }
+            indexLibre++;
+        }
+    }
+    // Mise � jour du nombre r�el de fichiers apr�s la d�fragmentation
+    nombreFichiersMeta = indexLibre; // Met à jour le nombre réel de fichiers
+    printf("Defragmentation completed. %d file(s) retained.\n", nombreFichiersMeta);
+} 
 
 
