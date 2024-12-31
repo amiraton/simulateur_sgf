@@ -102,38 +102,6 @@ Ce document contient des cas de test conçus pour valider les fonctionnalités d
 
 ---
 
-## Cas de Test 7 : Défragmentation d'un Fichier
-
-**Objectif :** Vérifier que la fonction `defragmenterFichier` supprime les enregistrements marqués comme supprimés logiquement et réorganise le fichier.
-
-- **Entrées :**
-  - Nom du fichier : `test_file.dat`
-- **Préconditions :**
-  - Le fichier `test_file.dat` contient des enregistrements, dont certains sont marqués comme supprimés logiquement (ID = `-1`).
-- **Étapes :**
-  1. Appeler `defragmenterFichier("test_file.dat")`.
-  2. Vérifier que le fichier contient uniquement des enregistrements valides.
-- **Résultat Attendu :**
-  - Sortie : `Défragmentation terminée. 1 enregistrements restants dans le fichier 'test_file.dat'.`
-
----
-
-## Cas de Test 8 : Renommer un Fichier
-
-**Objectif :** Vérifier que la fonction `renommerFichier` renomme correctement un fichier.
-
-- **Entrées :**
-  - Nom actuel du fichier : `test_file.dat`
-  - Nouveau nom du fichier : `renamed_file.dat`
-- **Préconditions :**
-  - Le fichier `test_file.dat` existe.
-- **Étapes :**
-  1. Appeler `renommerFichier("test_file.dat", "renamed_file.dat")`.
-  2. Vérifier que le fichier `renamed_file.dat` existe et que `test_file.dat` n'existe plus.
-- **Résultat Attendu :**
-  - Sortie : `Le fichier 'test_file.dat' a été renommé en 'renamed_file.dat'.`
-
----
 
 ## Notes :
 - Tous les cas de test supposent la disponibilité de données factices appropriées et une configuration préalable avant l'exécution.
