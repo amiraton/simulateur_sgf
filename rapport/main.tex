@@ -1,161 +1,193 @@
-\documentclass[a4paper, 12pt]{article}
+\documentclass{article}
 \usepackage[utf8]{inputenc}
-\usepackage{amsmath}
-\usepackage{amsfonts}
-\usepackage{amssymb}
+\usepackage{geometry}
 \usepackage{listings}
 \usepackage{xcolor}
 \usepackage{hyperref}
-\usepackage{geometry}
-\geometry{margin=1in}
 
-\title{Rapport}
-\author{}
-\date{}
+% Geometry
+\geometry{a4paper, margin=1in}
+
+% Colors for listings
+\definecolor{codeblue}{rgb}{0.01, 0.28, 1.0}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{codeblue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\title{\textbf{Rapport sur les Opérations sur les Fichiers}}
+\author{\textbf{Contributions d'Amira}}
+\date{\today}
 
 \begin{document}
 
 \maketitle
 
 \section*{Introduction}
-The task involves implementing several operations for managing file records in a simplified file system simulator. These operations include:
+Ce rapport détaille les fonctionnalités implémentées par Amira dans le cadre du projet \textbf{Simulateur Simplifié d’un Système de Gestion de Fichiers (SGF)}. La partie d'Amira couvre les \textbf{opérations sur les fichiers}, y compris la recherche, la suppression logique, la suppression physique, la défragmentation, et le renommage des fichiers.
 
+\section*{Fonctionnalités Implémentées}
+Amira a implémenté les fonctionnalités suivantes :
+\begin{enumerate}
+    \item Recherche d'un enregistrement par ID.
+    \item Suppression logique d'un enregistrement.
+    \item Suppression physique d'un enregistrement.
+    \item Défragmentation d'un fichier.
+    \item Renommage d'un fichier.
+\end{enumerate}
+
+\section*{Pseudocode des Principales Fonctions}
+
+\subsection*{1. Recherche d'un Enregistrement (\texttt{rechercherEnregistrement})}
+\textbf{Description :} Recherche un enregistrement par ID et affiche ses détails.
+
+\textbf{Pseudocode :}
+\begin{lstlisting}[language=C, caption={Pseudocode pour \texttt{rechercherEnregistrement}}]
+Ouvrir le fichier en mode lecture binaire
+Si le fichier ne peut pas être ouvert
+    Afficher un message d'erreur
+Pour chaque enregistrement dans le fichier
+    Si l'ID de l'enregistrement correspond à l'ID recherché
+        Afficher les détails de l'enregistrement
+        Terminer
+Afficher un message si l'ID est introuvable
+Fermer le fichier
+\end{lstlisting}
+
+\subsection*{2. Suppression Logique (\texttt{supprimerEnregistrementLogique})}
+\textbf{Description :} Marque un enregistrement comme supprimé en définissant son ID à \texttt{-1}.
+
+\textbf{Pseudocode :}
+\begin{lstlisting}[language=C, caption={Pseudocode pour \texttt{supprimerEnregistrementLogique}}]
+Ouvrir le fichier en mode lecture/écriture binaire
+Si le fichier ne peut pas être ouvert
+    Afficher un message d'erreur
+Pour chaque enregistrement dans le fichier
+    Si l'ID de l'enregistrement correspond à l'ID donné
+        Marquer l'enregistrement comme supprimé (ID = -1)
+        Sauvegarder les modifications dans le fichier
+        Terminer
+Afficher un message si l'ID est introuvable
+Fermer le fichier
+\end{lstlisting}
+
+\subsection*{3. Suppression Physique (\texttt{supprimerEnregistrementPhysique})}
+\textbf{Description :} Supprime physiquement un enregistrement en le retirant complètement du fichier.
+
+\textbf{Pseudocode :}
+\begin{lstlisting}[language=C, caption={Pseudocode pour \texttt{supprimerEnregistrementPhysique}}]
+Ouvrir le fichier original en mode lecture
+Créer un fichier temporaire
+Pour chaque enregistrement dans le fichier original
+    Si l'ID correspond à celui à supprimer
+        Ignorer l'enregistrement
+    Sinon
+        Copier l'enregistrement dans le fichier temporaire
+Remplacer le fichier original par le fichier temporaire
+Afficher un message de succès
+\end{lstlisting}
+
+\subsection*{4. Défragmentation d'un Fichier (\texttt{defragmenterFichier})}
+\textbf{Description :} Réorganise un fichier pour supprimer les enregistrements marqués comme supprimés logiquement.
+
+\textbf{Pseudocode :}
+\begin{lstlisting}[language=C, caption={Pseudocode pour \texttt{defragmenterFichier}}]
+Ouvrir le fichier original en mode lecture
+Créer un fichier temporaire
+Pour chaque enregistrement dans le fichier original
+    Si l'enregistrement n'est pas marqué comme supprimé
+        Copier l'enregistrement dans le fichier temporaire
+Remplacer le fichier original par le fichier temporaire
+Afficher un message de succès
+\end{lstlisting}
+
+\subsection*{5. Renommage d'un Fichier (\texttt{renommerFichier})}
+\textbf{Description :} Renomme un fichier en changeant son nom.
+
+\textbf{Pseudocode :}
+\begin{lstlisting}[language=C, caption={Pseudocode pour \texttt{renommerFichier}}]
+Utiliser la fonction rename(ancienNom, nouveauNom)
+Si l'opération réussit
+    Afficher un message de succès
+Sinon
+    Afficher un message d'erreur
+\end{lstlisting}
+
+\section*{Exemples de Fonctionnement}
+
+\subsection*{Exemple 1 : Recherche d'un Enregistrement}
+\textbf{Entrée :}
 \begin{itemize}
-    \item Searching for a record by ID.
-    \item Logical deletion of a record.
-    \item Physical deletion of a record.
-    \item File defragmentation to remove logically deleted records.
-    \item Renaming a file while updating associated metadata.
+    \item Nom du fichier : \texttt{test.dat}
+    \item ID : \texttt{1}
 \end{itemize}
-
-This report explains the implementation, pseudocode, and examples for each operation.
-
-\section*{Functionality Overview}
-
-\subsection*{1. Search for a Record by ID}
-This function searches for a specific record in a file by its unique ID and displays the record's details if found.
-
-\subsubsection*{Pseudocode}
+\textbf{Sortie :}
 \begin{verbatim}
-Open the file in read mode.
-For each record in the file:
-    If the record ID matches the target ID:
-        Display record details.
-        Exit.
-If no match is found:
-    Display "Record not found".
-Close the file.
+Enregistrement trouvé : ID: 1, Nom: Amira, Adresse: 16000 Alger
 \end{verbatim}
 
-\subsubsection*{Example}
-\textbf{Input:} File \texttt{data.dat} containing:
+\subsection*{Exemple 2 : Suppression Logique}
+\textbf{Entrée :}
+\begin{itemize}
+    \item Nom du fichier : \texttt{test.dat}
+    \item ID : \texttt{2}
+\end{itemize}
+\textbf{Sortie :}
 \begin{verbatim}
-ID: 1, Name: Alice, Address: Paris
-ID: 2, Name: Bob, Address: Berlin
-\end{verbatim}
-\textbf{Search for:} ID = 2.\newline
-\textbf{Output:} "Record found: ID: 2, Name: Bob, Address: Berlin".
-
-\subsection*{2. Logical Deletion of a Record}
-This function marks a record as deleted by setting its ID to -1, while keeping the record in the file.
-
-\subsubsection*{Pseudocode}
-\begin{verbatim}
-Open the file in read-write mode.
-For each record in the file:
-    If the record ID matches the target ID:
-        Set record ID to -1.
-        Write the updated record back to the file.
-        Exit.
-If no match is found:
-    Display "Record not found".
-Close the file.
+Enregistrement avec l'ID 2 supprimé logiquement.
 \end{verbatim}
 
-\subsubsection*{Example}
-\textbf{Input:} File \texttt{data.dat} containing:
+\subsection*{Exemple 3 : Suppression Physique}
+\textbf{Entrée :}
+\begin{itemize}
+    \item Nom du fichier : \texttt{test.dat}
+    \item ID : \texttt{3}
+\end{itemize}
+\textbf{Sortie :}
 \begin{verbatim}
-ID: 1, Name: Alice, Address: Paris
-ID: 2, Name: Bob, Address: Berlin
-\end{verbatim}
-\textbf{Delete logically:} ID = 1.\newline
-\textbf{Output:} File \texttt{data.dat} updated to:
-\begin{verbatim}
-ID: -1, Name: Alice, Address: Paris
-ID: 2, Name: Bob, Address: Berlin
+Enregistrement avec l'ID 3 supprimé physiquement.
 \end{verbatim}
 
-\subsection*{3. Physical Deletion of a Record}
-This function removes a record from the file permanently by rewriting the file without the specified record.
+\subsection*{Exemple 4 : Défragmentation}
+\textbf{Précondition :} Le fichier \texttt{test.dat} contient 3 enregistrements, dont l'un est marqué comme supprimé (ID = -1).
 
-\subsubsection*{Pseudocode}
+\textbf{Sortie :}
 \begin{verbatim}
-Open the file in read mode.
-Open a temporary file in write mode.
-For each record in the file:
-    If the record ID does not match the target ID:
-        Write the record to the temporary file.
-Replace the original file with the temporary file.
-Close both files.
+Défragmentation terminée. 2 enregistrements restants dans le fichier 'test.dat'.
 \end{verbatim}
 
-\subsubsection*{Example}
-\textbf{Input:} File \texttt{data.dat} containing:
+\subsection*{Exemple 5 : Renommage de Fichier}
+\textbf{Entrée :}
+\begin{itemize}
+    \item Nom actuel : \texttt{test.dat}
+    \item Nouveau nom : \texttt{renamed_test.dat}
+\end{itemize}
+\textbf{Sortie :}
 \begin{verbatim}
-ID: 1, Name: Alice, Address: Paris
-ID: 2, Name: Bob, Address: Berlin
-\end{verbatim}
-\textbf{Delete physically:} ID = 1.\newline
-\textbf{Output:} File \texttt{data.dat} updated to:
-\begin{verbatim}
-ID: 2, Name: Bob, Address: Berlin
-\end{verbatim}
-
-\subsection*{4. File Defragmentation}
-This function removes all logically deleted records (marked with ID = -1) and compacts the file.
-
-\subsubsection*{Pseudocode}
-\begin{verbatim}
-Open the file in read mode.
-Open a temporary file in write mode.
-For each record in the file:
-    If the record ID is not -1:
-        Write the record to the temporary file.
-Replace the original file with the temporary file.
-Close both files.
+Le fichier 'test.dat' a été renommé en 'renamed_test.dat'.
 \end{verbatim}
 
-\subsubsection*{Example}
-\textbf{Input:} File \texttt{data.dat} containing:
-\begin{verbatim}
-ID: -1, Name: Alice, Address: Paris
-ID: 2, Name: Bob, Address: Berlin
-\end{verbatim}
-\textbf{Defragment:}\newline
-\textbf{Output:} File \texttt{data.dat} updated to:
-\begin{verbatim}
-ID: 2, Name: Bob, Address: Berlin
-\end{verbatim}
 
-\subsection*{5. File Renaming}
-This function renames a file and updates the metadata to reflect the new name.
-
-\subsubsection*{Pseudocode}
-\begin{verbatim}
-Rename the file using system call.
-If successful:
-    Update metadata to reflect the new file name.
-    Display success message.
-Else:
-    Display error message.
-\end{verbatim}
-
-\subsubsection*{Example}
-\textbf{Input:} File name: \texttt{data.dat}.\newline
-\textbf{Rename to:} \texttt{records.dat}.\newline
-\textbf{Output:} "File 'data.dat' successfully renamed to 'records.dat'."
-
-\section*{Conclusion}
-The implementation of these file operations ensures robust functionality with error handling and user feedback. These tasks are critical for managing records in the simplified file system simulator.
 
 \end{document}
