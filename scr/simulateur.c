@@ -271,61 +271,6 @@ void supprimerEnregistrementPhysique(char *nomFichier, int id) {
     }
 }
 
-// Fonction : defragmenterFichier
-// Description : Réorganise un fichier en supprimant les enregistrements logiquement supprimés.
-// Paramètres :
-// - nomFichier : Le nom du fichier à défragmenter.
-// Préconditions :
-// - Le fichier doit exister et contenir des enregistrements au format approprié.
-// Postconditions :
-// - Le fichier est compacté avec seulement les enregistrements valides.
-void defragmenterFichier(char *nomFichier) {
-    // Ouvre le fichier original en mode lecture binaire et un fichier temporaire en mode écriture binaire.
-    FILE *fichier = fopen(nomFichier, "rb");
-    FILE *temp = fopen("temp.dat", "wb");
-
-    if (fichier == NULL || temp == NULL) {
-        perror("Erreur lors de l'ouverture du fichier pour la défragmentation");
-        return;
-    }
-
-    Enregistrement enregistrement; // Stocke temporairement les enregistrements lus.
-    int recordsMoved = 0; // Compte le nombre d'enregistrements valides déplacés.
-
-    // Parcourt chaque enregistrement pour copier uniquement les valides dans le fichier temporaire.
-    while (fread(&enregistrement, sizeof(Enregistrement), 1, fichier) == 1) {
-        if (enregistrement.id != -1) { // Ignorer les enregistrements logiquement supprimés.
-            fwrite(&enregistrement, sizeof(Enregistrement), 1, temp);
-            recordsMoved++;
-        }
-    }
-
-    fclose(fichier); // Ferme le fichier original.
-    fclose(temp); // Ferme le fichier temporaire.
-
-    remove(nomFichier); // Supprime le fichier original.
-    rename("temp.dat", nomFichier); // Renomme le fichier temporaire avec le nom original.
-
-    printf("Défragmentation terminée. %d enregistrements restants dans le fichier '%s'.\n", recordsMoved, nomFichier);
-}
-
-// Fonction : renommerFichier
-// Description : Renomme un fichier.
-// Paramètres :
-// - ancienNom : Le nom actuel du fichier.
-// - nouveauNom : Le nouveau nom du fichier.
-// Préconditions :
-// - Le fichier doit exister.
-// Postconditions :
-// - Le fichier est renommé avec le nouveau nom, ou un message d'erreur est affiché en cas d'échec.
-void renommerFichier(char *ancienNom, char *nouveauNom) {
-    if (rename(ancienNom, nouveauNom) == 0) {
-        printf("Le fichier '%s' a été renommé en '%s'.\n", ancienNom, nouveauNom);
-    } else {
-        perror("Erreur lors du renommage du fichier");
-    }
-}
-
 /* ---------------------------------------------------------------------------------------------- */
 /* ---------------------------------------------------------------------------------------------- */
 
