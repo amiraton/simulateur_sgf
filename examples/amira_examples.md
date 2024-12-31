@@ -1,189 +1,140 @@
-# Exemples pour la Partie d'Amira : Opérations sur les Fichiers
+# Cas de Test pour la Partie d'Amira (Opérations sur les Fichiers)
 
-Ce document explique comment tester les fonctionnalités implémentées dans la partie d'Amira du projet.
+Ce document contient des cas de test conçus pour valider les fonctionnalités de la partie d'Amira dans le projet, qui concerne les opérations sur les fichiers. Chaque cas de test simule des scénarios spécifiques et vérifie que l'implémentation produit les résultats attendus.
 
----
+## Cas de Test 1 : Recherche d'un Enregistrement
 
-## Fichiers d'Entrée
+**Objectif :** Vérifier que la fonction `rechercherEnregistrement` trouve et affiche correctement un enregistrement par son ID.
 
-1. **`amira_file.dat`**
-   - Un fichier binaire contenant 5 enregistrements. Chaque enregistrement est structuré comme suit :
-     ```
-     ID   Nom         Adresse
-     -------------------------
-     1    Amira      123 Rue Principale
-     2    Nadia      456 Rue des Ormes
-     3    Souriya    789 Avenue des Érables
-     4    Lamis      101 Rue des Chênes
-     5    Rodayna    202 Rue des Pins
-     ```
-   - Utilisez ce fichier pour tester les fonctionnalités de **recherche**, **suppression logique**, **suppression physique**, et **défragmentation**.
-
-2. **`logically_deleted.dat`**
-   - Identique à `amira_file.dat`, sauf que l'enregistrement avec l'ID `3` est supprimé logiquement (marqué avec l'ID `-1`).
-
-3. **`physically_deleted.dat`**
-   - Identique à `amira_file.dat`, sauf que l'enregistrement avec l'ID `3` est supprimé physiquement, laissant un espace dans le fichier.
-
-4. **`defragmented.dat`**
-   - Identique à `physically_deleted.dat`, mais les espaces sont supprimés, ne laissant que les enregistrements valides.
+- **Entrées :**
+  - Nom du fichier : `test_file.dat`
+  - ID de l'enregistrement : `1`
+- **Préconditions :**
+  - Le fichier `test_file.dat` contient un enregistrement avec l'ID `1`.
+- **Étapes :**
+  1. Appeler `rechercherEnregistrement("test_file.dat", 1)`.
+- **Résultat Attendu :**
+  - Sortie : `Enregistrement trouvé : ID: 1, Nom: Amira, Adresse: 16000 Alger`
+  - La fonction se termine avec succès.
 
 ---
 
-## Exemples de Tests
+## Cas de Test 2 : Recherche d'un Enregistrement Inexistant
 
-### 1. Recherche d'un Enregistrement
+**Objectif :** Valider le comportement de la fonction `rechercherEnregistrement` lorsque l'ID de l'enregistrement n'existe pas.
 
-**Fichier d'Entrée** : `amira_file.dat`
-
-**Commande dans le programme** :
-```
-Entrez le nom du fichier : amira_file.dat
-Entrez l'ID de l'enregistrement à rechercher : 3
-```
-
-**Résultat Attendu** :
-```
-Enregistrement trouvé : ID : 3, Nom : Charlie, Adresse : 789 Avenue des Érables, Position : 2
-```
-
-**Fichier de Sortie** : `output/search_output.txt`
+- **Entrées :**
+  - Nom du fichier : `test_file.dat`
+  - ID de l'enregistrement : `0`
+- **Préconditions :**
+  - Le fichier `test_file.dat` ne contient pas d'enregistrement avec l'ID `0`.
+- **Étapes :**
+  1. Appeler `rechercherEnregistrement("test_file.dat", 0)`.
+- **Résultat Attendu :**
+  - Sortie : `Enregistrement avec l'ID 0 introuvable dans le fichier 'test_file.dat'.`
+  - La fonction se termine sans erreurs.
 
 ---
 
-### 2. Suppression Logique
+## Cas de Test 3 : Suppression Logique d'un Enregistrement
 
-**Fichier d'Entrée** : `amira_file.dat`
+**Objectif :** Vérifier que la fonction `supprimerEnregistrementLogique` marque correctement un enregistrement comme supprimé logiquement.
 
-**Commande dans le programme** :
-```
-Entrez le nom du fichier : amira_file.dat
-Entrez l'ID de l'enregistrement à supprimer logiquement : 3
-```
-
-**Résultat Attendu** :
-```
-Enregistrement avec l'ID 3 supprimé logiquement.
-```
-
-**Fichier de Sortie** : `output/logical_delete_output.txt`
-
-**Fichier Binaire Modifié** : `input/logically_deleted.dat`
+- **Entrées :**
+  - Nom du fichier : `test_file.dat`
+  - ID de l'enregistrement : `1`
+- **Préconditions :**
+  - Le fichier `test_file.dat` contient un enregistrement avec l'ID `1`.
+- **Étapes :**
+  1. Appeler `supprimerEnregistrementLogique("test_file.dat", 1)`.
+  2. Vérifier que l'ID de l'enregistrement est mis à `-1` dans le fichier.
+- **Résultat Attendu :**
+  - Sortie : `Enregistrement avec l'ID 1 supprimé logiquement.`
 
 ---
 
-### 3. Suppression Physique
+## Cas de Test 4 : Suppression Logique d'un Enregistrement Inexistant
 
-**Fichier d'Entrée** : `logically_deleted.dat`
+**Objectif :** Valider le comportement de `supprimerEnregistrementLogique` lorsque l'ID de l'enregistrement n'existe pas.
 
-**Commande dans le programme** :
-```
-Entrez le nom du fichier : logically_deleted.dat
-Entrez l'ID de l'enregistrement à supprimer physiquement : 3
-```
-
-**Résultat Attendu** :
-```
-Enregistrement avec l'ID 3 supprimé physiquement.
-```
-
-**Fichier de Sortie** : `output/physical_delete_output.txt`
-
-**Fichier Binaire Modifié** : `input/physically_deleted.dat`
+- **Entrées :**
+  - Nom du fichier : `test_file.dat`
+  - ID de l'enregistrement : `1`
+- **Préconditions :**
+  - Le fichier `test_file.dat` ne contient pas d'enregistrement avec l'ID `1`.
+- **Étapes :**
+  1. Appeler `supprimerEnregistrementLogique("test_file.dat", 1)`.
+- **Résultat Attendu :**
+  - Sortie : `Enregistrement avec l'ID 1 introuvable pour suppression logique.`
 
 ---
 
-### 4. Défragmentation
+## Cas de Test 5 : Suppression Physique d'un Enregistrement
 
-**Fichier d'Entrée** : `physically_deleted.dat`
+**Objectif :** Vérifier que la fonction `supprimerEnregistrementPhysique` supprime complètement un enregistrement du fichier.
 
-**Commande dans le programme** :
-```
-Entrez le nom du fichier à défragmenter : physically_deleted.dat
-```
-
-**Résultat Attendu** :
-```
-Défragmentation terminée. 4 enregistrements restent dans le fichier 'physically_deleted.dat'.
-```
-
-**Fichier de Sortie** : `output/defragmentation_output.txt`
-
-**Fichier Binaire Modifié** : `input/defragmented.dat`
+- **Entrées :**
+  - Nom du fichier : `test_file.dat`
+  - ID de l'enregistrement : `1`
+- **Préconditions :**
+  - Le fichier `test_file.dat` contient un enregistrement avec l'ID `1`.
+- **Étapes :**
+  1. Appeler `supprimerEnregistrementPhysique("test_file.dat", 1)`.
+  2. Vérifier que l'enregistrement n'est plus présent dans le fichier.
+- **Résultat Attendu :**
+  - Sortie : `Enregistrement avec l'ID 1 supprimé physiquement.`
 
 ---
 
-### 5. Renommage d'un Fichier
+## Cas de Test 6 : Suppression Physique d'un Enregistrement Inexistant
 
-**Fichier d'Entrée** : `amira_file.dat`
+**Objectif :** Valider le comportement de `supprimerEnregistrementPhysique` lorsque l'ID de l'enregistrement n'existe pas.
 
-**Commande dans le programme** :
-```
-Entrez le nom actuel du fichier : amira_file.dat
-Entrez le nouveau nom du fichier : renamed_file.dat
-```
-
-**Résultat Attendu** :
-```
-Fichier 'amira_file.dat' renommé avec succès en 'renamed_file.dat'.
-Métadonnées mises à jour pour le fichier renommé 'renamed_file.dat'.
-```
-
-**Fichier de Sortie** : `output/rename_output.txt`
-
-**Fichier Renommé** : `input/renamed_file.dat`
+- **Entrées :**
+  - Nom du fichier : `test_file.dat`
+  - ID de l'enregistrement : `3`
+- **Préconditions :**
+  - Le fichier `test_file.dat` ne contient pas d'enregistrement avec l'ID `3`.
+- **Étapes :**
+  1. Appeler `supprimerEnregistrementPhysique("test_file.dat", 3)`.
+- **Résultat Attendu :**
+  - Sortie : `Enregistrement avec l'ID 3 introuvable pour suppression physique.`
 
 ---
 
-## Instructions pour Exécuter les Tests
+## Cas de Test 7 : Défragmentation d'un Fichier
 
-1. Placez les fichiers `.dat` dans le répertoire `input/`.
-2. Compilez et exécutez le programme principal avec `simulateur.exe`.
-3. Suivez les commandes mentionnées ci-dessus pour chaque test.
-4. Vérifiez les résultats dans le répertoire `output/`.
+**Objectif :** Vérifier que la fonction `defragmenterFichier` supprime les enregistrements marqués comme supprimés logiquement et réorganise le fichier.
 
-## Création des Fichiers d'Exemple
-
-Pour générer les fichiers `.dat`, utilisez le script suivant :
-
-```c
-#include <stdio.h>
-#include <string.h>
-
-typedef struct {
-    int id;
-    char name[50];
-    char address[100];
-} Record;
-
-void createExampleFile(const char *filename) {
-    FILE *file = fopen(filename, "wb");
-    if (file == NULL) {
-        perror("Error opening file");
-        return;
-    }
-
-    Record records[] = {
-        {1, "Amira", "123 Rue Principale"},
-        {2, "Nadia", "456 Rue des Ormes"},
-        {3, "Souriya", "789 Avenue des Érables"},
-        {4, "Lamis", "101 Rue des Chênes"},
-        {5, "Rodayna", "202 Rue des Pins"}
-    };
-
-    for (int i = 0; i < 5; i++) {
-        fwrite(&records[i], sizeof(Record), 1, file);
-    }
-
-    fclose(file);
-}
-
-int main() {
-    createExampleFile("amira_file.dat");
-    return 0;
-}
-```
-
-Compilez et exécutez ce script pour générer `amira_file.dat`. Vous pouvez le modifier pour produire d'autres fichiers comme `logically_deleted.dat` ou `physically_deleted.dat`.
+- **Entrées :**
+  - Nom du fichier : `test_file.dat`
+- **Préconditions :**
+  - Le fichier `test_file.dat` contient des enregistrements, dont certains sont marqués comme supprimés logiquement (ID = `-1`).
+- **Étapes :**
+  1. Appeler `defragmenterFichier("test_file.dat")`.
+  2. Vérifier que le fichier contient uniquement des enregistrements valides.
+- **Résultat Attendu :**
+  - Sortie : `Défragmentation terminée. 1 enregistrements restants dans le fichier 'test_file.dat'.`
 
 ---
+
+## Cas de Test 8 : Renommer un Fichier
+
+**Objectif :** Vérifier que la fonction `renommerFichier` renomme correctement un fichier.
+
+- **Entrées :**
+  - Nom actuel du fichier : `test_file.dat`
+  - Nouveau nom du fichier : `renamed_file.dat`
+- **Préconditions :**
+  - Le fichier `test_file.dat` existe.
+- **Étapes :**
+  1. Appeler `renommerFichier("test_file.dat", "renamed_file.dat")`.
+  2. Vérifier que le fichier `renamed_file.dat` existe et que `test_file.dat` n'existe plus.
+- **Résultat Attendu :**
+  - Sortie : `Le fichier 'test_file.dat' a été renommé en 'renamed_file.dat'.`
+
+---
+
+## Notes :
+- Tous les cas de test supposent la disponibilité de données factices appropriées et une configuration préalable avant l'exécution.
+- Veillez à effectuer un nettoyage des fichiers après chaque test pour maintenir un environnement isolé pour les tests suivants.

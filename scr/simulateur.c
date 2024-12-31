@@ -149,143 +149,186 @@ void deFragmenterFichier(char *nomFichier) {
     printf("Defragmentation completed. %d records remain in file '%s'.\n", recordsMoved, nomFichier);
 }
 
+/* ---------------------------------------------------------------------------------------------- */
 /* ---------------------------- Amira : Opérations sur les Fichiers ---------------------------- */
 
-/**
- * @brief Recherche un enregistrement par ID dans un fichier donné.
- * 
- * @param nomFichier Nom du fichier contenant les enregistrements.
- * @param id ID de l'enregistrement à rechercher.
- * 
- * @details Cette fonction parcourt le fichier à la recherche d'un enregistrement 
- *          correspondant à l'ID donné. Si trouvé, il affiche ses détails, sinon, 
- *          informe l'utilisateur que l'enregistrement n'existe pas.
- */
+// Fonction : rechercherEnregistrement
+// Description : Recherche un enregistrement dans un fichier par son ID et affiche ses informations si trouvé.
+// Paramètres :
+// - nomFichier : Le nom du fichier à analyser.
+// - id : L'ID de l'enregistrement à rechercher.
+// Préconditions :
+// - Le fichier doit exister et contenir des enregistrements au format approprié.
+// Postconditions :
+// - Affiche les détails de l'enregistrement si trouvé.
+// - Affiche un message d'erreur si l'ID n'est pas trouvé ou si le fichier ne peut pas être ouvert.
 void rechercherEnregistrement(char *nomFichier, int id) {
+    // Ouvre le fichier en mode binaire pour lecture.
     FILE *fichier = fopen(nomFichier, "rb");
     if (fichier == NULL) {
-        perror("Erreur d'ouverture du fichier");
+        perror("Erreur lors de l'ouverture du fichier");
         return;
     }
 
-    Enregistrement enregistrement;
-    int position = 0;
-    bool found = false;
+    Enregistrement enregistrement; // Stocke temporairement les enregistrements lus.
+    int position = 0; // Position courante dans le fichier.
 
+    // Parcourt chaque enregistrement jusqu'à la fin du fichier.
     while (fread(&enregistrement, sizeof(Enregistrement), 1, fichier) == 1) {
+        // Si l'ID correspond, affiche les informations de l'enregistrement.
         if (enregistrement.id == id) {
-            printf("Enregistrement trouvé : ID: %d, Nom: %s, Adresse: %s, Position: %d\n",
+            printf("Enregistrement trouvé : ID: %d, Nom: %s, Adresse: %s, Position: %d\n", 
                    id, enregistrement.nom, enregistrement.adresse, position);
-            found = true;
-            break;
+            fclose(fichier); // Ferme le fichier après avoir trouvé l'enregistrement.
+            return;
         }
-        position++;
+        position++; // Incrémente la position.
     }
 
-    if (!found) {
-        printf("Aucun enregistrement avec l'ID %d trouvé dans le fichier '%s'.\n", id, nomFichier);
-    }
-
-    fclose(fichier);
+    // Si aucun enregistrement correspondant n'est trouvé, affiche un message.
+    printf("Enregistrement avec l'ID %d introuvable dans le fichier '%s'.\n", id, nomFichier);
+    fclose(fichier); // Ferme le fichier.
 }
 
-/**
- * @brief Supprime logiquement un enregistrement en le marquant comme supprimé.
- * 
- * @param nomFichier Nom du fichier contenant les enregistrements.
- * @param id ID de l'enregistrement à supprimer logiquement.
- * 
- * @details L'enregistrement est marqué avec un ID de -1 pour indiquer qu'il est supprimé.
- */
+// Fonction : supprimerEnregistrementLogique
+// Description : Supprime un enregistrement de manière logique en marquant son ID comme supprimé (-1).
+// Paramètres :
+// - nomFichier : Le nom du fichier à modifier.
+// - id : L'ID de l'enregistrement à supprimer.
+// Préconditions :
+// - Le fichier doit exister et contenir des enregistrements au format approprié.
+// Postconditions :
+// - Marque l'enregistrement avec l'ID spécifié comme supprimé logiquement.
 void supprimerEnregistrementLogique(char *nomFichier, int id) {
+    // Ouvre le fichier en mode lecture/écriture binaire.
     FILE *fichier = fopen(nomFichier, "r+b");
     if (fichier == NULL) {
-        perror("Erreur d'ouverture du fichier");
+        perror("Erreur lors de l'ouverture du fichier");
         return;
     }
 
-    Enregistrement enregistrement;
-    bool found = false;
+    Enregistrement enregistrement; // Stocke temporairement les enregistrements lus.
 
+    // Parcourt chaque enregistrement dans le fichier.
     while (fread(&enregistrement, sizeof(Enregistrement), 1, fichier) == 1) {
+        // Si l'ID correspond, marque l'enregistrement comme supprimé logiquement.
         if (enregistrement.id == id) {
-            enregistrement.id = -1; // Marquer comme supprimé
-            fseek(fichier, -sizeof(Enregistrement), SEEK_CUR);
-            fwrite(&enregistrement, sizeof(Enregistrement), 1, fichier);
+            enregistrement.id = -1; // Marque comme supprimé.
+            fseek(fichier, -(long)sizeof(Enregistrement), SEEK_CUR); // Replace le curseur sur l'enregistrement courant.
+            fwrite(&enregistrement, sizeof(Enregistrement), 1, fichier); // Met à jour l'enregistrement.
             printf("Enregistrement avec l'ID %d supprimé logiquement.\n", id);
-            found = true;
-            break;
+            fclose(fichier); // Ferme le fichier.
+            return;
         }
     }
 
-    if (!found) {
-        printf("Aucun enregistrement avec l'ID %d trouvé pour suppression logique.\n", id);
-    }
-
-    fclose(fichier);
+    // Si aucun enregistrement correspondant n'est trouvé, affiche un message.
+    printf("Enregistrement avec l'ID %d introuvable pour suppression logique.\n", id);
+    fclose(fichier); // Ferme le fichier.
 }
 
-/**
- * @brief Supprime physiquement un enregistrement en recréant le fichier sans cet enregistrement.
- * 
- * @param nomFichier Nom du fichier contenant les enregistrements.
- * @param id ID de l'enregistrement à supprimer physiquement.
- * 
- * @details Les enregistrements non supprimés sont transférés dans un fichier temporaire, 
- *          puis le fichier original est remplacé.
- */
+// Fonction : supprimerEnregistrementPhysique
+// Description : Supprime physiquement un enregistrement en le retirant du fichier.
+// Paramètres :
+// - nomFichier : Le nom du fichier à modifier.
+// - id : L'ID de l'enregistrement à supprimer.
+// Préconditions :
+// - Le fichier doit exister et contenir des enregistrements au format approprié.
+// Postconditions :
+// - Le fichier est réécrit sans l'enregistrement correspondant.
 void supprimerEnregistrementPhysique(char *nomFichier, int id) {
+    // Ouvre le fichier original en mode lecture binaire et un fichier temporaire en mode écriture binaire.
     FILE *fichier = fopen(nomFichier, "rb");
     FILE *temp = fopen("temp.dat", "wb");
 
     if (fichier == NULL || temp == NULL) {
-        perror("Erreur d'ouverture du fichier");
+        perror("Erreur lors de l'ouverture du fichier");
         return;
     }
 
-    Enregistrement enregistrement;
-    bool recordFound = false;
+    Enregistrement enregistrement; // Stocke temporairement les enregistrements lus.
+    bool recordFound = false; // Indique si l'enregistrement à supprimer a été trouvé.
 
+    // Parcourt chaque enregistrement dans le fichier original.
     while (fread(&enregistrement, sizeof(Enregistrement), 1, fichier) == 1) {
         if (enregistrement.id == id) {
-            recordFound = true; // Ignorer cet enregistrement
+            recordFound = true; // Enregistrement trouvé, ne pas le copier dans le fichier temporaire.
         } else {
-            fwrite(&enregistrement, sizeof(Enregistrement), 1, temp);
+            fwrite(&enregistrement, sizeof(Enregistrement), 1, temp); // Copie l'enregistrement dans le fichier temporaire.
         }
     }
 
-    fclose(fichier);
-    fclose(temp);
+    fclose(fichier); // Ferme le fichier original.
+    fclose(temp); // Ferme le fichier temporaire.
+
+    remove(nomFichier); // Supprime le fichier original.
+    rename("temp.dat", nomFichier); // Renomme le fichier temporaire avec le nom original.
 
     if (recordFound) {
-        remove(nomFichier);
-        rename("temp.dat", nomFichier);
         printf("Enregistrement avec l'ID %d supprimé physiquement.\n", id);
     } else {
-        printf("Aucun enregistrement avec l'ID %d trouvé pour suppression physique.\n", id);
-        remove("temp.dat");
+        printf("Enregistrement avec l'ID %d introuvable pour suppression physique.\n", id);
     }
 }
 
+// Fonction : defragmenterFichier
+// Description : Réorganise un fichier en supprimant les enregistrements logiquement supprimés.
+// Paramètres :
+// - nomFichier : Le nom du fichier à défragmenter.
+// Préconditions :
+// - Le fichier doit exister et contenir des enregistrements au format approprié.
+// Postconditions :
+// - Le fichier est compacté avec seulement les enregistrements valides.
+void defragmenterFichier(char *nomFichier) {
+    // Ouvre le fichier original en mode lecture binaire et un fichier temporaire en mode écriture binaire.
+    FILE *fichier = fopen(nomFichier, "rb");
+    FILE *temp = fopen("temp.dat", "wb");
 
+    if (fichier == NULL || temp == NULL) {
+        perror("Erreur lors de l'ouverture du fichier pour la défragmentation");
+        return;
+    }
 
-/**
- * @brief Renomme un fichier.
- * 
- * @param ancienNom Nom actuel du fichier.
- * @param nouveauNom Nouveau nom pour le fichier.
- * 
- * @details Vérifie si le fichier peut être renommé et met à jour les métadonnées.
- */
-// Fonction pour renommer un fichier
+    Enregistrement enregistrement; // Stocke temporairement les enregistrements lus.
+    int recordsMoved = 0; // Compte le nombre d'enregistrements valides déplacés.
+
+    // Parcourt chaque enregistrement pour copier uniquement les valides dans le fichier temporaire.
+    while (fread(&enregistrement, sizeof(Enregistrement), 1, fichier) == 1) {
+        if (enregistrement.id != -1) { // Ignorer les enregistrements logiquement supprimés.
+            fwrite(&enregistrement, sizeof(Enregistrement), 1, temp);
+            recordsMoved++;
+        }
+    }
+
+    fclose(fichier); // Ferme le fichier original.
+    fclose(temp); // Ferme le fichier temporaire.
+
+    remove(nomFichier); // Supprime le fichier original.
+    rename("temp.dat", nomFichier); // Renomme le fichier temporaire avec le nom original.
+
+    printf("Défragmentation terminée. %d enregistrements restants dans le fichier '%s'.\n", recordsMoved, nomFichier);
+}
+
+// Fonction : renommerFichier
+// Description : Renomme un fichier.
+// Paramètres :
+// - ancienNom : Le nom actuel du fichier.
+// - nouveauNom : Le nouveau nom du fichier.
+// Préconditions :
+// - Le fichier doit exister.
+// Postconditions :
+// - Le fichier est renommé avec le nouveau nom, ou un message d'erreur est affiché en cas d'échec.
 void renommerFichier(char *ancienNom, char *nouveauNom) {
-    // VÃ©rifier si le fichier existe avant de renommer
     if (rename(ancienNom, nouveauNom) == 0) {
-        printf("File '%s' successfully renamed to '%s'.\n", ancienNom, nouveauNom);
+        printf("Le fichier '%s' a été renommé en '%s'.\n", ancienNom, nouveauNom);
     } else {
         perror("Erreur lors du renommage du fichier");
     }
 }
+
+/* ---------------------------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------------------------------- */
+
 typedef struct {
     char nom_fichier[50];          // Nom du fichier
     int taille_blocs;              // Nombre de blocs utilisÃ©s
