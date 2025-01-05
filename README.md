@@ -1,98 +1,49 @@
-# Projet: Simulateur Simplifié d’un Système de Gestion de Fichiers (SGF)
+# Simulateur Simplifié d’un Système de Gestion de Fichiers (SGF)
 
-Bienvenue dans le projet **Simulateur Simplifié d'un Système de Gestion de Fichiers (SGF)**. Ce projet est la collaboration entre plusieurs étudiants, chacun ayant contribué à une partie spécifique. Ce document explique le fonctionnement, les objectifs, et les détails techniques du projet.
+## Introduction
 
-## Objectif du Projet
-
-L'objectif de ce projet est de concevoir un simulateur de système de gestion de fichiers qui simule les principales fonctionnalités d'un système de fichiers, telles que la gestion des fichiers, des métadonnées, et des opérations sur les fichiers. Ce projet permet de comprendre les principes fondamentaux des systèmes de gestion de fichiers, tout en offrant une interface utilisateur claire et facile à utiliser.
-
----
+Ce projet est un simulateur simplifié pour un **Système de Gestion de Fichiers (SGF)**. Le simulateur gère les principales opérations sur les fichiers, telles que la recherche d'enregistrements, la suppression logique, la suppression physique, la défragmentation des fichiers et le renommage de fichiers, etc. Le système est conçu pour imiter les systèmes de fichiers et la gestion de stockage dans le monde réel.
 
 ## Structure du Projet
 
-### Contributions des Étudiants
+Le projet est organisé comme suit :
 
-- **Amira** : Opérations sur les Fichiers
----
+```
+Simulateur_SGF/
+├── examples/        # Contient des fichiers d'exemple pour tester les fonctionnalités.
+├── rapport/         # Inclut le rapport du projet détaillant l'implémentation.
+├── src/             # Fichiers source pour le simulateur SGF.
+├── LICENSE          # Licence du projet.
+└── README.md        # Ce fichier README.
+```
 
-## Fonctionnalités Principales
+### Fichiers et Répertoires Clés
 
-### 3. **Opérations sur les Fichiers (Amira)**
-- Recherche d'un enregistrement par ID.
-- Suppression logique d'un enregistrement.
-- Suppression physique d'un enregistrement avec réorganisation des fichiers.
-- Défragmentation d'un fichier.
-- Renommage de fichiers.
+- **`examples/`** : Fournit des données et des scénarios d'exemple pour tester les différentes fonctions implémentées dans le projet.
+- **`rapport/`** : Contient la documentation détaillée du projet, incluant les pseudocodes, des exemples et une analyse des fonctions.
+- **`src/`** : Inclut le fichier source contenant les fonctionnalités du système.
 
----
+## Comment Exécuter le Code
 
-## Instructions d'Installation et d'Exécution
+1. **Prérequis :**
+   - Un compilateur C (par exemple, GCC).
+   - Une interface en ligne de commande ou un terminal.
 
-### Prérequis
-- **Compilateur GCC** : Pour compiler le code C.
-- **Git** : Pour cloner et gérer le dépôt GitHub.
-
-### Étapes
-1. **Cloner le dépôt** :
+2. **Compilation :**
+   Naviguez vers le répertoire `src` et compilez le code avec la commande suivante :
    ```bash
-   git clone <URL-du-depot-GitHub>
-   cd simulateur_sgf
+   gcc -o simulateur_sgf main.c -lm
    ```
 
-2. **Compiler le programme** :
+3. **Exécution :**
+   Exécutez le programme compilé avec :
    ```bash
-   gcc -o simulateur simulateur.c
+   ./simulateur_sgf
    ```
 
-3. **Exécuter le programme** :
-   ```bash
-   ./simulateur
-   ```
+4. **Tests :**
+   Utilisez les données d'exemple fournies dans le répertoire `examples/` pour tester les différentes fonctionnalités.
 
----
+## Licence
 
-## Structure des Répertoires
-
-- **/src** : Contient le code source principal du projet.
-- **/examples** : Contient des exemples d'utilisation des fonctionnalités.
-- **/rapport** : Documentation détaillée du projet.
-- **/README.md** : Ce fichier, qui explique le projet.
-
----
-
-## Exemples d'Utilisation
-
-### Exemple : Recherche d'un Enregistrement
-- **Commandes** :
-  1. Créez un fichier avec des enregistrements.
-  2. Sélectionnez l'option de recherche dans le menu principal.
-  3. Entrez l'ID à rechercher.
-- **Résultat attendu** : Affichage des détails de l'enregistrement ou un message indiquant qu'il n'existe pas.
-
-### Exemple : Défragmentation d'un Fichier
-- **Commandes** :
-  1. Supprimez des enregistrements logiquement.
-  2. Sélectionnez l'option de défragmentation.
-  3. Le fichier est réorganisé avec uniquement les enregistrements valides.
-- **Résultat attendu** : Affichage du nombre d'enregistrements restants après la défragmentation.
-
----
-
-## Suivi Git et Collaboration
-
-Le projet utilise **GitHub** pour le suivi des modifications, la collaboration entre les étudiants, et la gestion des versions. Toutes les contributions sont enregistrées et peuvent être revues pour assurer la qualité du code.
-
-### Lien du Dépôt GitHub
-[Accéder au projet sur GitHub](<URL-du-depot>)
-
----
-
-## Remerciements
-
-Merci à tous les étudiants qui ont contribué à ce projet. Ce simulateur est le résultat d'un effort collectif pour apprendre et appliquer les concepts des systèmes de gestion de fichiers.
-
----
-
-## Contact
-
-Pour toute question ou problème, veuillez contacter : **chiraz1azer@gmail.com**
+Ce projet est sous licence MIT. Consultez le fichier `LICENSE` pour plus de détails.
