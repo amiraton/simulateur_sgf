@@ -32,7 +32,7 @@ Simulateur_SGF/
 2. **Compilation :**
    Naviguez vers le répertoire `src` et compilez le code avec la commande suivante :
    ```bash
-   gcc -o simulateur_sgf main.c -lm
+   gcc -o simulateur_sgf simulateur.c -lm
    ```
 
 3. **Exécution :**
