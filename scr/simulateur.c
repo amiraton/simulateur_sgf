@@ -22,23 +22,26 @@ Sirine : Menu Principal et Interface Utilisateur
 #define MAX_FILES 50
 
 // Structure représentant un bloc de la mémoire secondaire
-typedef struct {
-    int data[FB];    // Données du bloc
-    int ne;          // Nombre d'enregistrements dans le bloc
-    int nextBlock;   // Adresse du prochain bloc (mode chaîné)
-    bool libre;      // Indique si le bloc est libre ou occupé
+typedef struct
+{
+    int data[FB];     // Données du bloc
+    int ne;           // Nombre d'enregistrements dans le bloc
+    int nextBlock;    // Adresse du prochain bloc (mode chaîné)
+    bool libre;       // Indique si le bloc est libre ou occupé
     char fichier[50]; // Nom du fichier occupant ce bloc
 } Bloc;
 
 Bloc memoireSecondaire[MAX_BLOCKS];
 int allocationTable[MAX_BLOCKS]; // Table d'allocation pour les blocs chaînés
-int nombreBlocs; // Nombre total de blocs dans la mémoire secondaire
+int nombreBlocs;                 // Nombre total de blocs dans la mémoire secondaire
 
 // Initialisation de la mémoire secondaire
-void initialiserMemoireSecondaire(int nbBlocs) {
+void initialiserMemoireSecondaire(int nbBlocs)
+{
     nombreBlocs = nbBlocs;
     int i;
-    for (i = 0; i < nombreBlocs; i++) {
+    for (i = 0; i < nombreBlocs; i++)
+    {
         memoireSecondaire[i].libre = true;
         strcpy(memoireSecondaire[i].fichier, "");
         memoireSecondaire[i].ne = 0;
@@ -48,15 +51,19 @@ void initialiserMemoireSecondaire(int nbBlocs) {
 }
 
 // Fonction pour afficher les blocs en mode contigu
-void afficherBlocsContigus() {
-	int i;
-	int j;
+void afficherBlocsContigus()
+{
+    int i;
+    int j;
     printf("Affichage des blocs (mode contigu) :\n");
-    for ( i = 0; i < nombreBlocs; i++) {
-        if (!memoireSecondaire[i].libre) {
+    for (i = 0; i < nombreBlocs; i++)
+    {
+        if (!memoireSecondaire[i].libre)
+        {
             printf("Bloc %d (Fichier : %s, Enregistrements : %d) : ",
                    i + 1, memoireSecondaire[i].fichier, memoireSecondaire[i].ne);
-            for (j = 0; j < memoireSecondaire[i].ne; j++) {
+            for (j = 0; j < memoireSecondaire[i].ne; j++)
+            {
                 printf("%d ", memoireSecondaire[i].data[j]);
             }
             printf("\n");
@@ -65,14 +72,18 @@ void afficherBlocsContigus() {
 }
 
 // Fonction pour afficher les blocs en mode cha�n�
-void afficherBlocsChaines() {
-	int i;
-	int j;
+void afficherBlocsChaines()
+{
+    int i;
+    int j;
     printf("Affichage des blocs (mode cha�n�) :\n");
-    for (i = 0; i < nombreBlocs; i++) {
-        if (!memoireSecondaire[i].libre) {
+    for (i = 0; i < nombreBlocs; i++)
+    {
+        if (!memoireSecondaire[i].libre)
+        {
             printf("Bloc %d (Fichier : %s) : ", i + 1, memoireSecondaire[i].fichier);
-            for ( j = 0; j < memoireSecondaire[i].ne; j++) {
+            for (j = 0; j < memoireSecondaire[i].ne; j++)
+            {
                 printf("%d ", memoireSecondaire[i].data[j]);
             }
             printf(" -> Bloc suivant : %d\n", memoireSecondaire[i].nextBlock + 1);
@@ -81,9 +92,11 @@ void afficherBlocsChaines() {
 }
 
 // Fonction pour g�n�rer la table d'allocation
-void genererTableAllocation() {
-	int i;
-    for ( i = 0; i < nombreBlocs - 1; i++) {
+void genererTableAllocation()
+{
+    int i;
+    for (i = 0; i < nombreBlocs - 1; i++)
+    {
         allocationTable[i] = i + 1; // Chaque bloc pointe vers le suivant
     }
     allocationTable[nombreBlocs - 1] = -1; // Dernier bloc marque la fin
@@ -91,18 +104,22 @@ void genererTableAllocation() {
 }
 
 // Compactage de la mémoire secondaire
-void compactageMemoireSecondaire() {
+void compactageMemoireSecondaire()
+{
     int writeIndex = 0;
     int readIndex;
-    for (readIndex = 0; readIndex < nombreBlocs; readIndex++) {
-        if (!memoireSecondaire[readIndex].libre) {
+    for (readIndex = 0; readIndex < nombreBlocs; readIndex++)
+    {
+        if (!memoireSecondaire[readIndex].libre)
+        {
             memoireSecondaire[writeIndex] = memoireSecondaire[readIndex];
             writeIndex++;
         }
     }
     int i;
 
-    for (i = writeIndex; i < nombreBlocs; i++) {
+    for (i = writeIndex; i < nombreBlocs; i++)
+    {
         memoireSecondaire[i].libre = true;
         strcpy(memoireSecondaire[i].fichier, "");
         memoireSecondaire[i].ne = 0;
@@ -113,17 +130,20 @@ void compactageMemoireSecondaire() {
 }
 
 // Vider la mémoire secondaire
-void viderMemoireSecondaire() {
+void viderMemoireSecondaire()
+{
     initialiserMemoireSecondaire(nombreBlocs);
     printf("Secondary memory cleared. All data has been erased.\n");
 }
 
-// fonction defragmentation apres suppression 
-void deFragmenterFichier(char *nomFichier) {
+// fonction defragmentation apres suppression
+void deFragmenterFichier(char *nomFichier)
+{
     FILE *fichier = fopen(nomFichier, "rb");
     FILE *temp = fopen("temp.dat", "wb");
 
-    if (fichier == NULL || temp == NULL) {
+    if (fichier == NULL || temp == NULL)
+    {
         perror("Erreur lors de l'ouverture du fichier pour la défragmentation");
         return;
     }
@@ -132,8 +152,10 @@ void deFragmenterFichier(char *nomFichier) {
     int recordsMoved = 0;
 
     // Parcourir tous les enregistrements pour ignorer ceux marqués comme supprimés
-    while (fread(&enregistrement, sizeof(Enregistrement), 1, fichier) == 1) {
-        if (enregistrement.id != -1) { // Ignorer les enregistrements supprimés logiquement
+    while (fread(&enregistrement, sizeof(Enregistrement), 1, fichier) == 1)
+    {
+        if (enregistrement.id != -1)
+        { // Ignorer les enregistrements supprimés logiquement
             fwrite(&enregistrement, sizeof(Enregistrement), 1, temp);
             recordsMoved++;
         }
@@ -152,143 +174,341 @@ void deFragmenterFichier(char *nomFichier) {
 /* ---------------------------------------------------------------------------------------------- */
 /* ---------------------------- Amira : Opérations sur les Fichiers ---------------------------- */
 
-// Fonction : rechercherEnregistrement
-// Description : Recherche un enregistrement dans un fichier par son ID et affiche ses informations si trouvé.
-// Paramètres :
-// - nomFichier : Le nom du fichier à analyser.
-// - id : L'ID de l'enregistrement à rechercher.
-// Préconditions :
-// - Le fichier doit exister et contenir des enregistrements au format approprié.
-// Postconditions :
-// - Affiche les détails de l'enregistrement si trouvé.
-// - Affiche un message d'erreur si l'ID n'est pas trouvé ou si le fichier ne peut pas être ouvert.
-void rechercherEnregistrement(char *nomFichier, int id) {
-    // Ouvre le fichier en mode binaire pour lecture.
-    FILE *fichier = fopen(nomFichier, "rb");
-    if (fichier == NULL) {
-        perror("Erreur lors de l'ouverture du fichier");
+/// Fonction : rechercherEnregistrementParID
+// Description : Recherche un enregistrement par son ID dans un fichier sélectionné.
+// Exemple d'utilisation :
+// Supposons que le fichier sélectionné "fichier1" contienne les blocs suivants :
+// Bloc 0 : [101, 102, 103]
+// Bloc 1 : [201, 202, 203]
+// Recherche ID : 202
+// Résultat attendu : "Enregistrement trouvé : Bloc 1, Position 1"
+
+void rechercherEnregistrementParID()
+{
+    printf("=== Recherche d'Enregistrement par ID ===\n");
+
+    // Affiche une liste des fichiers disponibles pour permettre à l'utilisateur d'en choisir un.
+    printf("Sélectionnez un fichier à partir de la liste suivante pour effectuer la recherche :\n");
+    int i; // Déclaration de la variable pour la boucle.
+    for (i = 0; i < nombreFichiersMeta; i++)
+    {
+        // Affiche chaque fichier avec son index (commençant à 1 pour plus de clarté).
+        printf("%d. %s\n", i + 1, fichiers[i].nom);
+    }
+
+    // Demande à l'utilisateur de choisir un fichier dans la liste.
+    int fichierIndex;
+    printf("Votre choix : ");
+    scanf("%d", &fichierIndex);
+
+    // Vérifie si le choix est valide (index dans les limites de la liste).
+    if (fichierIndex < 1 || fichierIndex > nombreFichiersMeta)
+    {
+        printf("Choix invalide.\n");
+        return; // Termine la fonction si le choix est invalide.
+    }
+
+    // Récupère les métadonnées du fichier sélectionné.
+    Metadata *fichier = &fichiers[fichierIndex - 1];
+
+    // Demande à l'utilisateur d'entrer l'ID à rechercher.
+    int id;
+    printf("Entrez l'ID de l'enregistrement à rechercher : ");
+    scanf("%d", &id);
+
+    // Vérifie le mode d'organisation globale pour déterminer comment effectuer la recherche.
+    if (strcmp(fichier->organisation_globale, "contigue") == 0)
+    {
+        // Mode d'organisation contiguë.
+        int i; // Variable pour parcourir les blocs.
+        for (i = fichier->premier_bloc; i < fichier->premier_bloc + fichier->taille_blocs; i++)
+        {
+            if (strcmp(fichier->organisation_interne, "triee") == 0)
+            {
+                // Mode interne trié - utilise une recherche binaire.
+                int gauche = 0, droite = memoireSecondaire[i].ne - 1;
+                while (gauche <= droite)
+                {
+                    int milieu = (gauche + droite) / 2;
+                    if (memoireSecondaire[i].data[milieu] == id)
+                    {
+                        // Enregistrement trouvé, affiche sa position.
+                        printf("Enregistrement trouvé : Bloc %d, Position %d\n", i, milieu);
+                        return;
+                    }
+                    else if (memoireSecondaire[i].data[milieu] < id)
+                    {
+                        gauche = milieu + 1; // Continue la recherche dans la moitié droite.
+                    }
+                    else
+                    {
+                        droite = milieu - 1; // Continue la recherche dans la moitié gauche.
+                    }
+                }
+            }
+            else
+            {
+                // Mode interne non trié - utilise une recherche linéaire.
+                int j; // Variable pour parcourir les enregistrements.
+                for (j = 0; j < memoireSecondaire[i].ne; j++)
+                {
+                    if (memoireSecondaire[i].data[j] == id)
+                    {
+                        // Enregistrement trouvé, affiche sa position.
+                        printf("Enregistrement trouvé : Bloc %d, Position %d\n", i, j);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+    else if (strcmp(fichier->organisation_globale, "chainee") == 0)
+    {
+        // Mode d'organisation chaînée.
+        int bloc_courant = fichier->premier_bloc; // Début de la chaîne.
+        while (bloc_courant != -1)
+        {
+            if (strcmp(fichier->organisation_interne, "triee") == 0)
+            {
+                // Mode interne trié - utilise une recherche binaire.
+                int gauche = 0, droite = memoireSecondaire[bloc_courant].ne - 1;
+                while (gauche <= droite)
+                {
+                    int milieu = (gauche + droite) / 2;
+                    if (memoireSecondaire[bloc_courant].data[milieu] == id)
+                    {
+                        // Enregistrement trouvé, affiche sa position.
+                        printf("Enregistrement trouvé : Bloc %d, Position %d\n", bloc_courant, milieu);
+                        return;
+                    }
+                    else if (memoireSecondaire[bloc_courant].data[milieu] < id)
+                    {
+                        gauche = milieu + 1; // Continue la recherche dans la moitié droite.
+                    }
+                    else
+                    {
+                        droite = milieu - 1; // Continue la recherche dans la moitié gauche.
+                    }
+                }
+            }
+            else
+            {
+                // Mode interne non trié - utilise une recherche linéaire.
+                int j; // Variable pour parcourir les enregistrements.
+                for (j = 0; j < memoireSecondaire[bloc_courant].ne; j++)
+                {
+                    if (memoireSecondaire[bloc_courant].data[j] == id)
+                    {
+                        // Enregistrement trouvé, affiche sa position.
+                        printf("Enregistrement trouvé : Bloc %d, Position %d\n", bloc_courant, j);
+                        return;
+                    }
+                }
+            }
+            // Passe au bloc suivant dans la chaîne.
+            bloc_courant = memoireSecondaire[bloc_courant].nextBlock;
+        }
+    }
+    else
+    {
+        // Mode d'organisation inconnu.
+        printf("Mode d'organisation globale inconnu : %s\n", fichier->organisation_globale);
         return;
     }
 
-    Enregistrement enregistrement; // Stocke temporairement les enregistrements lus.
-    int position = 0; // Position courante dans le fichier.
-
-    // Parcourt chaque enregistrement jusqu'à la fin du fichier.
-    while (fread(&enregistrement, sizeof(Enregistrement), 1, fichier) == 1) {
-        // Si l'ID correspond, affiche les informations de l'enregistrement.
-        if (enregistrement.id == id) {
-            printf("Enregistrement trouvé : ID: %d, Nom: %s, Adresse: %s, Position: %d\n", 
-                   id, enregistrement.nom, enregistrement.adresse, position);
-            fclose(fichier); // Ferme le fichier après avoir trouvé l'enregistrement.
-            return;
-        }
-        position++; // Incrémente la position.
-    }
-
-    // Si aucun enregistrement correspondant n'est trouvé, affiche un message.
-    printf("Enregistrement avec l'ID %d introuvable dans le fichier '%s'.\n", id, nomFichier);
-    fclose(fichier); // Ferme le fichier.
+    // Si aucun enregistrement correspondant n'est trouvé.
+    printf("Enregistrement avec ID %d non trouvé.\n", id);
 }
 
 // Fonction : supprimerEnregistrementLogique
-// Description : Supprime un enregistrement de manière logique en marquant son ID comme supprimé (-1).
-// Paramètres :
-// - nomFichier : Le nom du fichier à modifier.
-// - id : L'ID de l'enregistrement à supprimer.
-// Préconditions :
-// - Le fichier doit exister et contenir des enregistrements au format approprié.
-// Postconditions :
-// - Marque l'enregistrement avec l'ID spécifié comme supprimé logiquement.
-void supprimerEnregistrementLogique(char *nomFichier, int id) {
-    // Ouvre le fichier en mode lecture/écriture binaire.
-    FILE *fichier = fopen(nomFichier, "r+b");
-    if (fichier == NULL) {
-        perror("Erreur lors de l'ouverture du fichier");
+// Description : Marque un enregistrement comme supprimé en définissant son ID à -1 (suppression logique).
+// Exemple d'utilisation :
+// Supposons que le fichier sélectionné "fichier1" contienne les blocs suivants :
+// Bloc 0 : [101, 102, 103]
+// Bloc 1 : [201, 202, 203]
+// Suppression ID : 102
+// Résultat attendu : Bloc 0 : [101, -1, 103]
+
+void supprimerEnregistrementLogique()
+{
+    printf("=== Suppression Logique ===\n");
+
+    // Affiche une liste des fichiers disponibles pour permettre à l'utilisateur d'en choisir un.
+    printf("Sélectionnez un fichier à partir de la liste suivante:\n");
+    int i; // Déclaration de la variable pour la boucle.
+    for (i = 0; i < nombreFichiersMeta; i++)
+    {
+        // Affiche chaque fichier avec son index (commençant à 1).
+        printf("%d. %s\n", i + 1, fichiers[i].nom);
+    }
+
+    // Demande à l'utilisateur de choisir un fichier.
+    int fichierIndex;
+    printf("Votre choix : ");
+    scanf("%d", &fichierIndex);
+
+    // Vérifie si le choix est valide.
+    if (fichierIndex < 1 || fichierIndex > nombreFichiersMeta)
+    {
+        printf("Choix invalide.\n");
         return;
     }
 
-    Enregistrement enregistrement; // Stocke temporairement les enregistrements lus.
+    // Récupère les métadonnées du fichier sélectionné.
+    Metadata *fichier = &fichiers[fichierIndex - 1];
 
-    // Parcourt chaque enregistrement dans le fichier.
-    while (fread(&enregistrement, sizeof(Enregistrement), 1, fichier) == 1) {
-        // Si l'ID correspond, marque l'enregistrement comme supprimé logiquement.
-        if (enregistrement.id == id) {
-            enregistrement.id = -1; // Marque comme supprimé.
-            fseek(fichier, -(long)sizeof(Enregistrement), SEEK_CUR); // Replace le curseur sur l'enregistrement courant.
-            fwrite(&enregistrement, sizeof(Enregistrement), 1, fichier); // Met à jour l'enregistrement.
-            printf("Enregistrement avec l'ID %d supprimé logiquement.\n", id);
-            fclose(fichier); // Ferme le fichier.
-            return;
+    // Affiche tous les enregistrements disponibles dans le fichier.
+    printf("Enregistrements disponibles dans '%s':\n", fichier->nom);
+    int bloc_courant = fichier->premier_bloc; // Commence à partir du premier bloc.
+    while (bloc_courant != -1)
+    {
+        int j; // Parcourt les enregistrements dans le bloc courant.
+        for (j = 0; j < memoireSecondaire[bloc_courant].ne; j++)
+        {
+            if (memoireSecondaire[bloc_courant].data[j] != -1)
+            { // Ignore les enregistrements déjà supprimés.
+                printf("Bloc %d, Position %d: ID = %d\n", bloc_courant, j, memoireSecondaire[bloc_courant].data[j]);
+            }
         }
+        bloc_courant = memoireSecondaire[bloc_courant].nextBlock; // Passe au bloc suivant.
     }
 
-    // Si aucun enregistrement correspondant n'est trouvé, affiche un message.
-    printf("Enregistrement avec l'ID %d introuvable pour suppression logique.\n", id);
-    fclose(fichier); // Ferme le fichier.
+    // Demande à l'utilisateur de saisir l'ID à supprimer.
+    int id;
+    printf("Entrez l'ID de l'enregistrement à supprimer : ");
+    scanf("%d", &id);
+
+    // Parcourt les blocs pour trouver et supprimer l'enregistrement.
+    bloc_courant = fichier->premier_bloc;
+    while (bloc_courant != -1)
+    {
+        int j;
+        for (j = 0; j < memoireSecondaire[bloc_courant].ne; j++)
+        {
+            if (memoireSecondaire[bloc_courant].data[j] == id)
+            {
+                // Marque l'enregistrement comme supprimé.
+                memoireSecondaire[bloc_courant].data[j] = -1;
+                printf("Enregistrement %d supprimé logiquement du bloc %d\n", id, bloc_courant);
+                mettreAJourTableAllocation();    // Met à jour la table d'allocation.
+                mettreAJourMetadonnees(fichier); // Met à jour les métadonnées.
+                return;
+            }
+        }
+        bloc_courant = memoireSecondaire[bloc_courant].nextBlock; // Passe au bloc suivant.
+    }
+
+    // Si l'ID n'a pas été trouvé.
+    printf("Enregistrement non trouvé.\n");
 }
 
 // Fonction : supprimerEnregistrementPhysique
-// Description : Supprime physiquement un enregistrement en le retirant du fichier.
-// Paramètres :
-// - nomFichier : Le nom du fichier à modifier.
-// - id : L'ID de l'enregistrement à supprimer.
-// Préconditions :
-// - Le fichier doit exister et contenir des enregistrements au format approprié.
-// Postconditions :
-// - Le fichier est réécrit sans l'enregistrement correspondant.
-void supprimerEnregistrementPhysique(char *nomFichier, int id) {
-    // Ouvre le fichier original en mode lecture binaire et un fichier temporaire en mode écriture binaire.
-    FILE *fichier = fopen(nomFichier, "rb");
-    FILE *temp = fopen("temp.dat", "wb");
+// Description : Supprime physiquement un enregistrement en le retirant complètement du fichier.
+// Exemple d'utilisation :
+// Supposons que le fichier sélectionné "fichier1" contienne les blocs suivants :
+// Bloc 0 : [101, 102, 103]
+// Bloc 1 : [201, 202, 203]
+// Suppression ID : 103
+// Résultat attendu : Bloc 0 : [101, 102]
 
-    if (fichier == NULL || temp == NULL) {
-        perror("Erreur lors de l'ouverture du fichier");
+void supprimerEnregistrementPhysique()
+{
+    printf("=== Suppression Physique ===\n");
+
+    // Affiche une liste des fichiers disponibles pour permettre à l'utilisateur d'en choisir un.
+    printf("Sélectionnez un fichier à partir de la liste suivante:\n");
+    int i; // Déclaration de la variable pour la boucle.
+    for (i = 0; i < nombreFichiersMeta; i++)
+    {
+        // Affiche chaque fichier avec son index (commençant à 1).
+        printf("%d. %s\n", i + 1, fichiers[i].nom);
+    }
+
+    // Demande à l'utilisateur de choisir un fichier.
+    int fichierIndex;
+    printf("Votre choix : ");
+    scanf("%d", &fichierIndex);
+
+    // Vérifie si le choix est valide.
+    if (fichierIndex < 1 || fichierIndex > nombreFichiersMeta)
+    {
+        printf("Choix invalide.\n");
         return;
     }
 
-    Enregistrement enregistrement; // Stocke temporairement les enregistrements lus.
-    bool recordFound = false; // Indique si l'enregistrement à supprimer a été trouvé.
+    // Récupère les métadonnées du fichier sélectionné.
+    Metadata *fichier = &fichiers[fichierIndex - 1];
 
-    // Parcourt chaque enregistrement dans le fichier original.
-    while (fread(&enregistrement, sizeof(Enregistrement), 1, fichier) == 1) {
-        if (enregistrement.id == id) {
-            recordFound = true; // Enregistrement trouvé, ne pas le copier dans le fichier temporaire.
-        } else {
-            fwrite(&enregistrement, sizeof(Enregistrement), 1, temp); // Copie l'enregistrement dans le fichier temporaire.
+    // Affiche tous les enregistrements disponibles dans le fichier.
+    printf("Enregistrements disponibles dans '%s':\n", fichier->nom);
+    int bloc_courant = fichier->premier_bloc; // Commence à partir du premier bloc.
+    while (bloc_courant != -1)
+    {
+        int j; // Parcourt les enregistrements dans le bloc courant.
+        for (j = 0; j < memoireSecondaire[bloc_courant].ne; j++)
+        {
+            if (memoireSecondaire[bloc_courant].data[j] != -1)
+            { // Ignore les enregistrements déjà supprimés.
+                printf("Bloc %d, Position %d: ID = %d\n", bloc_courant, j, memoireSecondaire[bloc_courant].data[j]);
+            }
         }
+        bloc_courant = memoireSecondaire[bloc_courant].nextBlock; // Passe au bloc suivant.
     }
 
-    fclose(fichier); // Ferme le fichier original.
-    fclose(temp); // Ferme le fichier temporaire.
+    // Demande à l'utilisateur de saisir l'ID à supprimer.
+    int id;
+    printf("Entrez l'ID de l'enregistrement à supprimer : ");
+    scanf("%d", &id);
 
-    remove(nomFichier); // Supprime le fichier original.
-    rename("temp.dat", nomFichier); // Renomme le fichier temporaire avec le nom original.
-
-    if (recordFound) {
-        printf("Enregistrement avec l'ID %d supprimé physiquement.\n", id);
-    } else {
-        printf("Enregistrement avec l'ID %d introuvable pour suppression physique.\n", id);
+    // Parcourt les blocs pour trouver et supprimer l'enregistrement physiquement.
+    bloc_courant = fichier->premier_bloc;
+    while (bloc_courant != -1)
+    {
+        int j, k;
+        for (j = 0; j < memoireSecondaire[bloc_courant].ne; j++)
+        {
+            if (memoireSecondaire[bloc_courant].data[j] == id)
+            {
+                // Décale les enregistrements pour combler l'espace laissé par la suppression.
+                for (k = j; k < memoireSecondaire[bloc_courant].ne - 1; k++)
+                {
+                    memoireSecondaire[bloc_courant].data[k] = memoireSecondaire[bloc_courant].data[k + 1];
+                }
+                memoireSecondaire[bloc_courant].ne--; // Réduit le nombre d'enregistrements dans le bloc.
+                printf("Enregistrement %d supprimé physiquement du bloc %d\n", id, bloc_courant);
+                mettreAJourTableAllocation();    // Met à jour la table d'allocation.
+                mettreAJourMetadonnees(fichier); // Met à jour les métadonnées.
+                return;
+            }
+        }
+        bloc_courant = memoireSecondaire[bloc_courant].nextBlock; // Passe au bloc suivant.
     }
+
+    // Si l'ID n'a pas été trouvé.
+    printf("Enregistrement non trouvé.\n");
 }
 
 /* ---------------------------------------------------------------------------------------------- */
 /* ---------------------------------------------------------------------------------------------- */
 
-typedef struct {
-    char nom_fichier[50];          // Nom du fichier
-    int taille_blocs;              // Nombre de blocs utilisÃ©s
-    int taille_enregistrements;    // Nombre total d'enregistrements
-    int adresse_premier_bloc;      // Adresse du premier bloc
-    char mode_organisation[20];    // Mode d'organisation des donnÃ©es
-    char mode_interne[10];         // Mode interne (triÃ© ou non)
+typedef struct
+{
+    char nom_fichier[50];       // Nom du fichier
+    int taille_blocs;           // Nombre de blocs utilisÃ©s
+    int taille_enregistrements; // Nombre total d'enregistrements
+    int adresse_premier_bloc;   // Adresse du premier bloc
+    char mode_organisation[20]; // Mode d'organisation des donnÃ©es
+    char mode_interne[10];      // Mode interne (triÃ© ou non)
 } Metadonnees;
 
 Metadonnees fichiersMeta[MAX_FILES]; // Tableau des mÃ©tadonnÃ©es
 int nombreFichiersMeta = 0;          // Nombre de fichiers enregistrÃ©s dans les mÃ©tadonnÃ©es
 
 // Ajouter des mÃ©tadonnÃ©es pour un nouveau fichier
-void ajouterMetadonnees(char *nom, int taille_blocs, int taille_enreg, int adresse_bloc, char *mode_globale, char *mode_interne) {
-    if (nombreFichiersMeta >= MAX_FILES) {
+void ajouterMetadonnees(char *nom, int taille_blocs, int taille_enreg, int adresse_bloc, char *mode_globale, char *mode_interne)
+{
+    if (nombreFichiersMeta >= MAX_FILES)
+    {
         fprintf(stderr, "Error: Metadata limit reached. Cannot add metadata for file '%s'.\n", nom);
         return;
     }
@@ -305,13 +525,16 @@ void ajouterMetadonnees(char *nom, int taille_blocs, int taille_enreg, int adres
 }
 
 // Afficher toutes les mÃ©tadonnÃ©es
-void afficherMetadonnees() {
-    if (nombreFichiersMeta == 0) {
+void afficherMetadonnees()
+{
+    if (nombreFichiersMeta == 0)
+    {
         printf("No metadata available.\n");
         return;
     }
     int i;
-    for ( i = 0; i < nombreFichiersMeta; i++) {
+    for (i = 0; i < nombreFichiersMeta; i++)
+    {
         printf("File: %s\nBlocks: %d\nRecords: %d\nFirst Block Address: %d\nGlobal Mode: %s\nInternal Mode: %s\n---\n",
                fichiersMeta[i].nom_fichier,
                fichiersMeta[i].taille_blocs,
@@ -323,10 +546,13 @@ void afficherMetadonnees() {
 }
 
 // Mettre Ã  jour les mÃ©tadonnÃ©es lors du renommage d'un fichier
-void miseAJourMetadonneesRenommage(char *ancienNom, char *nouveauNom) {
-	int i;
-    for (i = 0; i < nombreFichiersMeta; i++) {
-        if (strcmp(fichiersMeta[i].nom_fichier, ancienNom) == 0) {
+void miseAJourMetadonneesRenommage(char *ancienNom, char *nouveauNom)
+{
+    int i;
+    for (i = 0; i < nombreFichiersMeta; i++)
+    {
+        if (strcmp(fichiersMeta[i].nom_fichier, ancienNom) == 0)
+        {
             strcpy(fichiersMeta[i].nom_fichier, nouveauNom);
             printf("Metadata updated: file '%s' renamed to '%s'.\n", ancienNom, nouveauNom);
             return;
@@ -334,12 +560,14 @@ void miseAJourMetadonneesRenommage(char *ancienNom, char *nouveauNom) {
     }
     fprintf(stderr, "Error: No metadata found for file '%s'. Cannot update.\n", ancienNom);
 }
-Fonction pour effectuer une suppression logique d'un fichier
-void MiseSuppressionLogique(char *nomFichier) {
- int i ;
-  // Parcours des métadonnées pour trouver le fichier à supprimer
-    for ( i = 0; i < nombreFichiersMeta; i++) {
-        if (strcmp(fichiersMeta[i].nom_fichier, nomFichier) == 0) {
+Fonction pour effectuer une suppression logique d'un fichier void MiseSuppressionLogique(char *nomFichier)
+{
+    int i;
+    // Parcours des métadonnées pour trouver le fichier à supprimer
+    for (i = 0; i < nombreFichiersMeta; i++)
+    {
+        if (strcmp(fichiersMeta[i].nom_fichier, nomFichier) == 0)
+        {
             strcpy(fichiersMeta[i].nom_fichier, "SUPPRIME"); // Marquer comme supprimÃ©
             printf("Logical deletion: file '%s' marked as deleted.\n", nomFichier);
             return;
@@ -349,13 +577,18 @@ void MiseSuppressionLogique(char *nomFichier) {
     fprintf(stderr, "Error: No metadata found for file '%s'. Cannot perform logical deletion.\n", nomFichier);
 }
 // Fonction pour effectuer une suppression physique d'un fichier
-void MisSuppressionPhysique(char *nomFichier) {
- int i ; int j ;
- // Parcours des métadonnées pour trouver le fichier à supprimer
-    for ( i = 0; i < nombreFichiersMeta; i++) {
-        if (strcmp(fichiersMeta[i].nom_fichier, nomFichier) == 0) {
+void MisSuppressionPhysique(char *nomFichier)
+{
+    int i;
+    int j;
+    // Parcours des métadonnées pour trouver le fichier à supprimer
+    for (i = 0; i < nombreFichiersMeta; i++)
+    {
+        if (strcmp(fichiersMeta[i].nom_fichier, nomFichier) == 0)
+        {
             // DÃ©calage pour Ã©craser l'entrÃ©e supprimÃ©e
-            for ( j = i; j < nombreFichiersMeta - 1; j++) {
+            for (j = i; j < nombreFichiersMeta - 1; j++)
+            {
                 fichiersMeta[j] = fichiersMeta[j + 1];
             }
             nombreFichiersMeta--;
@@ -366,17 +599,23 @@ void MisSuppressionPhysique(char *nomFichier) {
     fprintf(stderr, "Error: No metadata found for file '%s'. Cannot perform physical deletion.\n", nomFichier);
 }
 // Fonction pour mettre à jour les métadonnées après un compactage des fichiers
-void miseAJourMetadonneesApresCompactage() {
+void miseAJourMetadonneesApresCompactage()
+{
     int writeIndex = 0;
     // Mise à jour des métadonnées après compactage
-    int i ; int j ;
-    for ( i = 0; i < nombreFichiersMeta; i++) {
+    int i;
+    int j;
+    for (i = 0; i < nombreFichiersMeta; i++)
+    {
         // Vérification du premier bloc utilisé par le fichier
-        if (fichiersMeta[i].adresse_premier_bloc >= writeIndex) {
+        if (fichiersMeta[i].adresse_premier_bloc >= writeIndex)
+        {
             // Si l'adresse du premier bloc a changé, il faut la mettre à jour
             fichiersMeta[i].adresse_premier_bloc = -1; // On va devoir recalculer l'adresse du premier bloc
-            for ( j = 0; j < nombreBlocs; j++) {
-                if (!memoireSecondaire[j].libre && strcmp(memoireSecondaire[j].fichier, fichiersMeta[i].nom_fichier) == 0) {
+            for (j = 0; j < nombreBlocs; j++)
+            {
+                if (!memoireSecondaire[j].libre && strcmp(memoireSecondaire[j].fichier, fichiersMeta[i].nom_fichier) == 0)
+                {
                     fichiersMeta[i].adresse_premier_bloc = j; // Recalcul de l'adresse
                     break;
                 }
@@ -385,14 +624,18 @@ void miseAJourMetadonneesApresCompactage() {
         }
     }
 }
-//Mis a jour metadonnee apres insertion 
-void miseAJourMetadonneesApresInsertion(char *nomFichier, int blocsUtilises, int nouveauxEnregistrements, char *modeOrganisation) {
+// Mis a jour metadonnee apres insertion
+void miseAJourMetadonneesApresInsertion(char *nomFichier, int blocsUtilises, int nouveauxEnregistrements, char *modeOrganisation)
+{
     int i;
-    for (i = 0; i < nombreFichiersMeta; i++) {
-        if (strcmp(fichiersMeta[i].nom_fichier, nomFichier) == 0) {
+    for (i = 0; i < nombreFichiersMeta; i++)
+    {
+        if (strcmp(fichiersMeta[i].nom_fichier, nomFichier) == 0)
+        {
             fichiersMeta[i].taille_enregistrements += nouveauxEnregistrements;
 
-            if (strcmp(modeOrganisation, "chaînée") == 0) {
+            if (strcmp(modeOrganisation, "chaînée") == 0)
+            {
                 fichiersMeta[i].taille_blocs += blocsUtilises; // Mise à jour uniquement pour mode chaîné
             }
 
@@ -404,13 +647,18 @@ void miseAJourMetadonneesApresInsertion(char *nomFichier, int blocsUtilises, int
     fprintf(stderr, "Erreur : Métadonnées introuvables pour le fichier '%s'.\n", nomFichier);
 }
 // Fonction pour effectuer la d�fragmentation des m�tadonn�es en r�organisant les fichiers
-void MisDefragmentation() {
-    int indexLibre = 0; int i ;
+void MisDefragmentation()
+{
+    int indexLibre = 0;
+    int i;
     // Parcours des m�tadonn�es pour r�organiser les fichiers non supprim�s
-    for ( i = 0; i < nombreFichiersMeta; i++) {
-        if (strcmp(fichiersMeta[i].nom_fichier, "SUPPRIME") != 0) {
+    for (i = 0; i < nombreFichiersMeta; i++)
+    {
+        if (strcmp(fichiersMeta[i].nom_fichier, "SUPPRIME") != 0)
+        {
             // Copier les données valides à l'index libre
-            if (i != indexLibre) {
+            if (i != indexLibre)
+            {
                 fichiersMeta[indexLibre] = fichiersMeta[i];
             }
             indexLibre++;
@@ -419,6 +667,4 @@ void MisDefragmentation() {
     // Mise � jour du nombre r�el de fichiers apr�s la d�fragmentation
     nombreFichiersMeta = indexLibre; // Met à jour le nombre réel de fichiers
     printf("Defragmentation completed. %d file(s) retained.\n", nombreFichiersMeta);
-} 
-
-
+}
