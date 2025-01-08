@@ -11,164 +11,211 @@ Sirine : Menu Principal et Interface Utilisateur
 */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <ctype.h>
+
 
 /* ---------------------------- Lyna : Conception et Structure de la Mémoire Secondaire ---------------------------- */
 #define FB 3 // Facteur de blocage
 #define MAX_BLOCKS 1000
 #define MAX_FILES 50
+#define BLOC_LIBRE -1 // Indique qu'un bloc est libre
+#define MAX_NOM 256
+#define MAX_MODE 20
 
 // Structure représentant un bloc de la mémoire secondaire
-typedef struct
-{
-    int data[FB];     // Données du bloc
-    int ne;           // Nombre d'enregistrements dans le bloc
-    int nextBlock;    // Adresse du prochain bloc (mode chaîné)
-    bool libre;       // Indique si le bloc est libre ou occupé
+typedef struct {
+    int data[FB];    // Données du bloc
+    int ne;          // Nombre d'enregistrements dans le bloc
+    int nextBlock;   // Adresse du prochain bloc (mode chaîné)
+    bool libre;      // Indique si le bloc est libre ou occupé
     char fichier[50]; // Nom du fichier occupant ce bloc
 } Bloc;
 
+typedef struct {
+    char nom[MAX_NOM];
+    int taille_blocs;
+    char organisation_globale[MAX_MODE];
+    char organisation_interne[MAX_MODE];
+    int premier_bloc;
+} Metadata;
+
+typedef struct {
+    int id;
+    char data[100];
+} Enregistrement;
+
+typedef struct {
+    int indexBloc;
+    bool libre;
+    char fichier[50]; // Nom du fichier occupant le bloc, vide si le bloc est libre
+} Allocation;
+
+Allocation tableAllocation[MAX_BLOCKS];
+
 Bloc memoireSecondaire[MAX_BLOCKS];
-int allocationTable[MAX_BLOCKS]; // Table d'allocation pour les blocs chaînés
-int nombreBlocs;                 // Nombre total de blocs dans la mémoire secondaire
+int nombreBlocs; // Nombre total de blocs dans la mémoire secondaire
+int nombreFichiersMeta = 0; // Nombre de fichiers
+Metadata fichiers[MAX_FILES]; // Tableau des fichiers
+
+
 
 // Initialisation de la mémoire secondaire
-void initialiserMemoireSecondaire(int nbBlocs)
-{
-    nombreBlocs = nbBlocs;
-    int i;
-    for (i = 0; i < nombreBlocs; i++)
-    {
-        memoireSecondaire[i].libre = true;
-        strcpy(memoireSecondaire[i].fichier, "");
-        memoireSecondaire[i].ne = 0;
-        memoireSecondaire[i].nextBlock = -1;
-    }
-    printf("Secondary memory initialized with %d blocks.\n", nombreBlocs);
-}
-
-// Fonction pour afficher les blocs en mode contigu
-void afficherBlocsContigus()
-{
-    int i;
-    int j;
-    printf("Affichage des blocs (mode contigu) :\n");
-    for (i = 0; i < nombreBlocs; i++)
-    {
-        if (!memoireSecondaire[i].libre)
-        {
-            printf("Bloc %d (Fichier : %s, Enregistrements : %d) : ",
-                   i + 1, memoireSecondaire[i].fichier, memoireSecondaire[i].ne);
-            for (j = 0; j < memoireSecondaire[i].ne; j++)
-            {
-                printf("%d ", memoireSecondaire[i].data[j]);
-            }
-            printf("\n");
-        }
-    }
-}
-
-// Fonction pour afficher les blocs en mode cha�n�
-void afficherBlocsChaines()
-{
-    int i;
-    int j;
-    printf("Affichage des blocs (mode cha�n�) :\n");
-    for (i = 0; i < nombreBlocs; i++)
-    {
-        if (!memoireSecondaire[i].libre)
-        {
-            printf("Bloc %d (Fichier : %s) : ", i + 1, memoireSecondaire[i].fichier);
-            for (j = 0; j < memoireSecondaire[i].ne; j++)
-            {
-                printf("%d ", memoireSecondaire[i].data[j]);
-            }
-            printf(" -> Bloc suivant : %d\n", memoireSecondaire[i].nextBlock + 1);
-        }
-    }
-}
-
-// Fonction pour g�n�rer la table d'allocation
-void genererTableAllocation()
-{
-    int i;
-    for (i = 0; i < nombreBlocs - 1; i++)
-    {
-        allocationTable[i] = i + 1; // Chaque bloc pointe vers le suivant
-    }
-    allocationTable[nombreBlocs - 1] = -1; // Dernier bloc marque la fin
-    printf("Table d'allocation g�n�r�e.\n");
-}
-
-// Compactage de la mémoire secondaire
-void compactageMemoireSecondaire()
-{
-    int writeIndex = 0;
-    int readIndex;
-    for (readIndex = 0; readIndex < nombreBlocs; readIndex++)
-    {
-        if (!memoireSecondaire[readIndex].libre)
-        {
-            memoireSecondaire[writeIndex] = memoireSecondaire[readIndex];
-            writeIndex++;
-        }
-    }
-    int i;
-
-    for (i = writeIndex; i < nombreBlocs; i++)
-    {
-        memoireSecondaire[i].libre = true;
-        strcpy(memoireSecondaire[i].fichier, "");
-        memoireSecondaire[i].ne = 0;
-        memoireSecondaire[i].nextBlock = -1;
-    }
-
-    printf("Secondary memory compacted. All free blocks are moved to the end.\n");
-}
-
-// Vider la mémoire secondaire
-void viderMemoireSecondaire()
-{
-    initialiserMemoireSecondaire(nombreBlocs);
-    printf("Secondary memory cleared. All data has been erased.\n");
-}
-
-// fonction defragmentation apres suppression
-void deFragmenterFichier(char *nomFichier)
-{
-    FILE *fichier = fopen(nomFichier, "rb");
-    FILE *temp = fopen("temp.dat", "wb");
-
-    if (fichier == NULL || temp == NULL)
-    {
-        perror("Erreur lors de l'ouverture du fichier pour la défragmentation");
+// Initialisation de la mémoire secondaire
+void initialiserMemoireSecondaire(int nbBlocs) {
+    if (nbBlocs > MAX_BLOCKS) {
+        printf("Erreur : Nombre de blocs supérieur à la capacité maximale (%d).\n", MAX_BLOCKS);
         return;
     }
 
-    Enregistrement enregistrement;
-    int recordsMoved = 0;
+    nombreBlocs = nbBlocs;
+    int i ;
+    for ( i = 0; i < nombreBlocs; i++) {
+        memoireSecondaire[i].ne = 0;
+        memoireSecondaire[i].nextBlock = BLOC_LIBRE;
+        memoireSecondaire[i].libre = true;
+        strcpy(memoireSecondaire[i].fichier, "");
+        // Initialiser la table d'allocation
+        tableAllocation[i].indexBloc = i;
+        tableAllocation[i].libre = true;
+        strcpy(tableAllocation[i].fichier, "");
+    }
+    printf("Mémoire secondaire initialisée avec %d blocs.\n", nombreBlocs);
+}
 
-    // Parcourir tous les enregistrements pour ignorer ceux marqués comme supprimés
-    while (fread(&enregistrement, sizeof(Enregistrement), 1, fichier) == 1)
-    {
-        if (enregistrement.id != -1)
-        { // Ignorer les enregistrements supprimés logiquement
-            fwrite(&enregistrement, sizeof(Enregistrement), 1, temp);
-            recordsMoved++;
-        }
+
+// fonction pour la mise a jour de la table d'allocation
+
+void mettreAJourTableAllocation() {
+    for (int i = 0; i < nombreBlocs; i++) {
+        tableAllocation[i].libre = memoireSecondaire[i].libre;
+        strcpy(tableAllocation[i].fichier, memoireSecondaire[i].fichier);
+    }
+}
+
+// Compactage de la mémoire secondaire
+void compactageMemoire() {
+    int i, j;
+    int prochainBlocLibre = 0;  // Premier bloc libre disponible pour le compactage
+    
+    // Réinitialiser les blocs libres
+    for (i = 0; i < nombreBlocs; i++) {
+        memoireSecondaire[i].libre = true;
+        strcpy(memoireSecondaire[i].fichier, "");
+        memoireSecondaire[i].ne = 0;
+        memoireSecondaire[i].nextBlock = -1;
     }
 
-    fclose(fichier);
-    fclose(temp);
+    // Recharger les fichiers en mémoire après le compactage
+    for (i = 0; i < nombreFichiersMeta; i++) {
+        Metadata *fichier = &fichiers[i];
+        int premierBlocCompacte = -1, precedentBloc = -1;
+        int blocsAlloues = 0;
 
-    // Remplacer l'ancien fichier par le fichier défragmenté
-    remove(nomFichier);
-    rename("temp.dat", nomFichier);
+        // Allouer les blocs de manière contiguë
+        for (j = 0; j < fichier->taille_blocs; j++) {
+            if (prochainBlocLibre < nombreBlocs) {
+                // Allouer un bloc pour le fichier
+                memoireSecondaire[prochainBlocLibre].libre = false;
+                strcpy(memoireSecondaire[prochainBlocLibre].fichier, fichier->nom);
+                memoireSecondaire[prochainBlocLibre].ne = 0;
 
-    printf("Defragmentation completed. %d records remain in file '%s'.\n", recordsMoved, nomFichier);
+                if (premierBlocCompacte == -1) {
+                    premierBlocCompacte = prochainBlocLibre;  // Définir le premier bloc
+                }
+                if (precedentBloc != -1) {
+                    memoireSecondaire[precedentBloc].nextBlock = prochainBlocLibre;
+                }
+
+                precedentBloc = prochainBlocLibre;
+                blocsAlloues++;
+                prochainBlocLibre++;
+            } else {
+                printf("Espace insuffisant pour effectuer le compactage.\n");
+                return;
+            }
+        }
+
+        // Mettre à jour les métadonnées du fichier
+        fichier->premier_bloc = premierBlocCompacte;
+        mettreAJourMetadonnees(fichier);
+    }
+        
+        mettreAJourTableAllocation() ;
+    printf("Le compactage de la mémoire secondaire a été effectué avec succès.\n");
+}
+
+// Vider la mémoire secondaire
+void viderMemoire() {
+    printf("=== Vider la MÃ©moire Secondaire ===\n");
+
+    // RÃ©initialiser tous les blocs de mÃ©moire secondaire
+    int i ;
+    for (i = 0; i < nombreBlocs; i++) {
+        memoireSecondaire[i].libre = true;
+        memoireSecondaire[i].ne = 0;
+        memoireSecondaire[i].nextBlock = -1;
+        strcpy(memoireSecondaire[i].fichier, "");
+    }
+      mettreAJourTableAllocation();
+    // RÃ©initialiser toutes les mÃ©tadonnÃ©es
+    nombreFichiersMeta = 0;
+    printf("MÃ©moire secondaire vidÃ©e avec succÃ¨s. Tous les fichiers et blocs ont Ã©tÃ© rÃ©initialisÃ©s.\n");
+}
+
+// fonction defragmentation apres suppression
+void defragmenterFichier() {
+    printf("=== DÃ©fragmentation ===\n");
+
+    // Afficher la liste des fichiers
+    printf("SÃ©lectionnez un fichier Ã  partir de la liste suivante:\n");
+    int i ;
+    for ( i = 0; i < nombreFichiersMeta; i++) {
+        printf("%d. %s\n", i + 1, fichiers[i].nom);
+    }
+
+    int fichierIndex;
+    printf("Votre choix : ");
+    scanf("%d", &fichierIndex);
+
+    if (fichierIndex < 1 || fichierIndex > nombreFichiersMeta) {
+        printf("Choix invalide.\n");
+        return;
+    }
+
+    Metadata *fichier = &fichiers[fichierIndex - 1];
+
+    int bloc_courant = fichier->premier_bloc;
+    int temp[FB * MAX_BLOCKS];
+    int pos = 0;
+
+    // Collecter tous les enregistrements valides
+    while (bloc_courant != -1) {
+    	int j ;
+        for ( j = 0; j < memoireSecondaire[bloc_courant].ne; j++) {
+            if (memoireSecondaire[bloc_courant].data[j] != -1) {
+                temp[pos++] = memoireSecondaire[bloc_courant].data[j];
+            }
+        }
+        bloc_courant = memoireSecondaire[bloc_courant].nextBlock;
+    }
+
+    // RÃ©Ã©crire les enregistrements
+    bloc_courant = fichier->premier_bloc;
+    pos = 0;
+    while (bloc_courant != -1) {
+        memoireSecondaire[bloc_courant].ne = 0;
+        int j ;
+        for ( j = 0; j < FB && pos < fichier->taille_blocs * FB; j++) {
+            memoireSecondaire[bloc_courant].data[j] = temp[pos++];
+            memoireSecondaire[bloc_courant].ne++;
+        }
+        bloc_courant = memoireSecondaire[bloc_courant].nextBlock;
+    }
+
+    printf("DÃ©fragmentation terminÃ©e pour '%s'.\n", fichier->nom);
+    mettreAJourTableAllocation();
+    mettreAJourMetadonnees(fichier); // Mise Ã  jour des mÃ©tadonnÃ©es
 }
 
 /* ---------------------------------------------------------------------------------------------- */
