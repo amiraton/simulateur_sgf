@@ -1,14 +1,7 @@
 /*
 Projet: Simulateur Simplifié d’un Système de Gestion de Fichiers (SGF)
 
-Intégration finale des contributions des étudiants :
 
-Lyna : Conception et Structure de la Mémoire Secondaire (MS)
-Hadjer : Gestion des Fichiers de Données
-Amira : Opérations sur les Fichiers
-Anfel : Gestion des Métadonnées
-Sirine : Menu Principal et Interface Utilisateur
-*/
 
 #include <stdio.h>
 #include <string.h>
@@ -217,7 +210,137 @@ void defragmenterFichier() {
     mettreAJourTableAllocation();
     mettreAJourMetadonnees(fichier); // Mise Ã  jour des mÃ©tadonnÃ©es
 }
+//fonction pour renomer un fichier 
+void renommerFichier() {
+    printf("=== Renommer un Fichier ===\n");
 
+    // Afficher la liste des fichiers
+    printf("Selectionnez un fichier a  partir de la liste suivante pour le renommer :\n");
+    int i ;
+    for ( i = 0; i < nombreFichiersMeta; i++) {
+        printf("%d. %s\n", i + 1, fichiers[i].nom);
+    }
+
+    int fichierIndex;
+    printf("Votre choix : ");
+    scanf("%d", &fichierIndex);
+
+    if (fichierIndex < 1 || fichierIndex > nombreFichiersMeta) {
+        printf("Choix invalide.\n");
+        return;
+    }
+
+    Metadata *fichier = &fichiers[fichierIndex - 1];
+
+    printf("Entrez le nouveau nom pour le fichier '%s' : ", fichier->nom);
+    char nouveauNom[MAX_NOM];
+    scanf("%s", nouveauNom);
+
+    // Mettre a  jour le nom dans les metadonnees
+    strcpy(fichier->nom, nouveauNom);
+
+    // Mettre a  jour le nom dans tous les blocs associees
+    int bloc_courant = fichier->premier_bloc;
+    while (bloc_courant != -1) {
+        strcpy(memoireSecondaire[bloc_courant].fichier, nouveauNom);
+        bloc_courant = memoireSecondaire[bloc_courant].nextBlock;
+    }
+          mettreAJourTableAllocation();
+    // Mise a  jour des metadonnees
+    mettreAJourMetadonnees(fichier);
+
+    printf("Le fichier a ete renomme en '%s'.\n", nouveauNom);
+}
+
+// Fonction pour inserer un enregistrement dans un fichier choisi
+void insererEnregistrement() {
+    // Demander a  l'utilisateur de choisir un fichier
+    int fichierIndex;
+    printf("Selectionnez un fichier a  partir de la liste suivante:\n");
+    int i ;
+    for ( i = 0; i < nombreFichiersMeta; i++) {
+        printf("%d. %s\n", i + 1, fichiers[i].nom);
+    }
+    printf("Votre choix : ");
+    scanf("%d", &fichierIndex);
+
+    if (fichierIndex < 1 || fichierIndex > nombreFichiersMeta) {
+        printf("Choix invalide.\n");
+        return;
+    }
+
+    Metadata *fichier = &fichiers[fichierIndex - 1];  // Acceder au fichier choisi
+
+    // Demander les informations pour l'enregistrement
+    Enregistrement enregistrement;
+    printf("Entrez l'ID de l'enregistrement : ");
+    scanf("%d", &enregistrement.id);
+    printf("Entrez les donnees de l'enregistrement : ");
+    scanf("%s", enregistrement.data);
+
+    if (strcmp(fichier->organisation_globale, "contigue") == 0) {
+        if (strcmp(fichier->organisation_interne, "triee") == 0) {
+            // Mode contigu triee
+            int premierBloc = fichier->premier_bloc;
+            int dernierBloc = premierBloc + fichier->taille_blocs;
+            int i ;
+
+            for ( i = premierBloc; i < dernierBloc; i++) {
+                if (memoireSecondaire[i].ne < FB) {
+                    // Trouver la bonne position dans le bloc triee
+                    int j;
+                    for (j = 0; j < memoireSecondaire[i].ne; j++) {
+                        if (memoireSecondaire[i].data[j] > enregistrement.id) {
+                            break;
+                        }
+                    }
+                      int k ;
+                    // Decaler les enregistrements si necessaire
+                    for ( k = memoireSecondaire[i].ne; k > j; k--) {
+                        memoireSecondaire[i].data[k] = memoireSecondaire[i].data[k - 1];
+                    }
+
+                    // Inserer l'enregistrement a  la bonne position
+                    memoireSecondaire[i].data[j] = enregistrement.id;
+                    memoireSecondaire[i].ne++;
+                    printf("Enregistrement insere dans le bloc %d a  la position %d\n", i, j);
+                    return;
+                }
+            }
+        } else {
+            // Mode contigu non triee
+            int premierBloc = fichier->premier_bloc;
+            int dernierBloc = premierBloc + fichier->taille_blocs;
+             int i ;
+            for ( i = premierBloc; i < dernierBloc; i++) {
+                if (memoireSecondaire[i].ne < FB) {
+                    // Ajouter l'enregistrement dans le premier espace disponible
+                    memoireSecondaire[i].data[memoireSecondaire[i].ne] = enregistrement.id;
+                    memoireSecondaire[i].ne++;
+                    printf("Enregistrement insere dans le bloc %d\n", i);
+                    return;
+                }
+            }
+        }
+    } else if (strcmp(fichier->organisation_globale, "chainee") == 0) {
+        // Mode chaine
+        int bloc_courant = fichier->premier_bloc;
+
+        while (bloc_courant != -1) {
+            if (memoireSecondaire[bloc_courant].ne < FB) {
+                memoireSecondaire[bloc_courant].data[memoireSecondaire[bloc_courant].ne] = enregistrement.id;
+                memoireSecondaire[bloc_courant].ne++;
+                printf("Enregistrement insere dans le bloc %d\n", bloc_courant);
+                return;
+            }
+            bloc_courant = memoireSecondaire[bloc_courant].nextBlock;
+        }
+    } else {
+        printf("Mode d'organisation inconnu : %s\n", fichier->organisation_globale);
+    }
+
+    printf("Aucun espace disponible pour inserer l'enregistrement.\n");
+}
 /* ---------------------------------------------------------------------------------------------- */
 /* ---------------------------- Amira : Opérations sur les Fichiers ---------------------------- */
 
@@ -523,8 +646,8 @@ void supprimerEnregistrementPhysique()
                 }
                 memoireSecondaire[bloc_courant].ne--; // Réduit le nombre d'enregistrements dans le bloc.
                 printf("Enregistrement %d supprimé physiquement du bloc %d\n", id, bloc_courant);
-                mettreAJourTableAllocation();    // Met à jour la table d'allocation.
-                mettreAJourMetadonnees(fichier); // Met à jour les métadonnées.
+                mettreAJourTableAllocation();    // Met a jour la table d'allocation.
+                mettreAJourMetadonnees(fichier); // Met a jour les métadonnées.
                 return;
             }
         }
@@ -532,186 +655,37 @@ void supprimerEnregistrementPhysique()
     }
 
     // Si l'ID n'a pas été trouvé.
-    printf("Enregistrement non trouvé.\n");
+    printf("Enregistrement non trouve.\n");
 }
 
-/* ---------------------------------------------------------------------------------------------- */
-/* ---------------------------------------------------------------------------------------------- */
+// fonction pour afficher metadonnee dans un tableau 
+void afficherMetadonnees() {
+    printf("=== Metadonnees des Fichiers ===\n");
 
-typedef struct
-{
-    char nom_fichier[50];       // Nom du fichier
-    int taille_blocs;           // Nombre de blocs utilisÃ©s
-    int taille_enregistrements; // Nombre total d'enregistrements
-    int adresse_premier_bloc;   // Adresse du premier bloc
-    char mode_organisation[20]; // Mode d'organisation des donnÃ©es
-    char mode_interne[10];      // Mode interne (triÃ© ou non)
-} Metadonnees;
-
-Metadonnees fichiersMeta[MAX_FILES]; // Tableau des mÃ©tadonnÃ©es
-int nombreFichiersMeta = 0;          // Nombre de fichiers enregistrÃ©s dans les mÃ©tadonnÃ©es
-
-// Ajouter des mÃ©tadonnÃ©es pour un nouveau fichier
-void ajouterMetadonnees(char *nom, int taille_blocs, int taille_enreg, int adresse_bloc, char *mode_globale, char *mode_interne)
-{
-    if (nombreFichiersMeta >= MAX_FILES)
-    {
-        fprintf(stderr, "Error: Metadata limit reached. Cannot add metadata for file '%s'.\n", nom);
+    if (nombreFichiersMeta == 0) {
+        printf("Aucun fichier n'est actuellement enregistrÃƒÂ©.\n");
         return;
     }
 
-    Metadonnees *meta = &fichiersMeta[nombreFichiersMeta++];
-    strcpy(meta->nom_fichier, nom);
-    meta->taille_blocs = taille_blocs;
-    meta->taille_enregistrements = taille_enreg;
-    meta->adresse_premier_bloc = adresse_bloc;
-    strcpy(meta->mode_organisation, mode_globale);
-    strcpy(meta->mode_interne, mode_interne);
+    // En-tete du tableau
+    printf("+----------------------+------------+------------+-------------------+-------------------+------------+\n");
+    printf("| %-20s | %-10s | %-10s | %-17s | %-17s | %-10s |\n", 
+           "Nom du fichier", "Blocs", "Enreg.", "Org. Globale", "Org. Interne", "Premier Bloc");
+    printf("+----------------------+------------+------------+-------------------+-------------------+------------+\n");
 
-    printf("Metadata added for file '%s'.\n", nom);
-}
+    // Affichage des metadonnees pour chaque fichier
+    int i ;
+    for ( i = 0; i < nombreFichiersMeta; i++) {
+        Metadata *fichier = &fichiers[i];
+        printf("| %-20s | %-10d | %-10d | %-17s | %-17s | %-10d |\n", 
+               fichier->nom, 
+               fichier->taille_blocs, 
+               fichier->taille_blocs * FB, // Taille en enregistrements
+               fichier->organisation_globale, 
+               fichier->organisation_interne, 
+               fichier->premier_bloc);
+    }
 
-// Afficher toutes les mÃ©tadonnÃ©es
-void afficherMetadonnees()
-{
-    if (nombreFichiersMeta == 0)
-    {
-        printf("No metadata available.\n");
-        return;
-    }
-    int i;
-    for (i = 0; i < nombreFichiersMeta; i++)
-    {
-        printf("File: %s\nBlocks: %d\nRecords: %d\nFirst Block Address: %d\nGlobal Mode: %s\nInternal Mode: %s\n---\n",
-               fichiersMeta[i].nom_fichier,
-               fichiersMeta[i].taille_blocs,
-               fichiersMeta[i].taille_enregistrements,
-               fichiersMeta[i].adresse_premier_bloc,
-               fichiersMeta[i].mode_organisation,
-               fichiersMeta[i].mode_interne);
-    }
-}
-
-// Mettre Ã  jour les mÃ©tadonnÃ©es lors du renommage d'un fichier
-void miseAJourMetadonneesRenommage(char *ancienNom, char *nouveauNom)
-{
-    int i;
-    for (i = 0; i < nombreFichiersMeta; i++)
-    {
-        if (strcmp(fichiersMeta[i].nom_fichier, ancienNom) == 0)
-        {
-            strcpy(fichiersMeta[i].nom_fichier, nouveauNom);
-            printf("Metadata updated: file '%s' renamed to '%s'.\n", ancienNom, nouveauNom);
-            return;
-        }
-    }
-    fprintf(stderr, "Error: No metadata found for file '%s'. Cannot update.\n", ancienNom);
-}
-Fonction pour effectuer une suppression logique d'un fichier void MiseSuppressionLogique(char *nomFichier)
-{
-    int i;
-    // Parcours des métadonnées pour trouver le fichier à supprimer
-    for (i = 0; i < nombreFichiersMeta; i++)
-    {
-        if (strcmp(fichiersMeta[i].nom_fichier, nomFichier) == 0)
-        {
-            strcpy(fichiersMeta[i].nom_fichier, "SUPPRIME"); // Marquer comme supprimÃ©
-            printf("Logical deletion: file '%s' marked as deleted.\n", nomFichier);
-            return;
-        }
-    }
-    // Si le fichier n'est pas trouvé dans les métadonnées
-    fprintf(stderr, "Error: No metadata found for file '%s'. Cannot perform logical deletion.\n", nomFichier);
-}
-// Fonction pour effectuer une suppression physique d'un fichier
-void MisSuppressionPhysique(char *nomFichier)
-{
-    int i;
-    int j;
-    // Parcours des métadonnées pour trouver le fichier à supprimer
-    for (i = 0; i < nombreFichiersMeta; i++)
-    {
-        if (strcmp(fichiersMeta[i].nom_fichier, nomFichier) == 0)
-        {
-            // DÃ©calage pour Ã©craser l'entrÃ©e supprimÃ©e
-            for (j = i; j < nombreFichiersMeta - 1; j++)
-            {
-                fichiersMeta[j] = fichiersMeta[j + 1];
-            }
-            nombreFichiersMeta--;
-            printf("Physical deletion: Metadata for file '%s' has been removed.\n", nomFichier);
-            return;
-        }
-    }
-    fprintf(stderr, "Error: No metadata found for file '%s'. Cannot perform physical deletion.\n", nomFichier);
-}
-// Fonction pour mettre à jour les métadonnées après un compactage des fichiers
-void miseAJourMetadonneesApresCompactage()
-{
-    int writeIndex = 0;
-    // Mise à jour des métadonnées après compactage
-    int i;
-    int j;
-    for (i = 0; i < nombreFichiersMeta; i++)
-    {
-        // Vérification du premier bloc utilisé par le fichier
-        if (fichiersMeta[i].adresse_premier_bloc >= writeIndex)
-        {
-            // Si l'adresse du premier bloc a changé, il faut la mettre à jour
-            fichiersMeta[i].adresse_premier_bloc = -1; // On va devoir recalculer l'adresse du premier bloc
-            for (j = 0; j < nombreBlocs; j++)
-            {
-                if (!memoireSecondaire[j].libre && strcmp(memoireSecondaire[j].fichier, fichiersMeta[i].nom_fichier) == 0)
-                {
-                    fichiersMeta[i].adresse_premier_bloc = j; // Recalcul de l'adresse
-                    break;
-                }
-            }
-            printf("Metadata updated for file '%s': First block address is now %d.\n", fichiersMeta[i].nom_fichier, fichiersMeta[i].adresse_premier_bloc);
-        }
-    }
-}
-// Mis a jour metadonnee apres insertion
-void miseAJourMetadonneesApresInsertion(char *nomFichier, int blocsUtilises, int nouveauxEnregistrements, char *modeOrganisation)
-{
-    int i;
-    for (i = 0; i < nombreFichiersMeta; i++)
-    {
-        if (strcmp(fichiersMeta[i].nom_fichier, nomFichier) == 0)
-        {
-            fichiersMeta[i].taille_enregistrements += nouveauxEnregistrements;
-
-            if (strcmp(modeOrganisation, "chaînée") == 0)
-            {
-                fichiersMeta[i].taille_blocs += blocsUtilises; // Mise à jour uniquement pour mode chaîné
-            }
-
-            printf("Mise à jour des métadonnées : fichier '%s', +%d blocs, +%d enregistrements.\n",
-                   nomFichier, blocsUtilises, nouveauxEnregistrements);
-            return;
-        }
-    }
-    fprintf(stderr, "Erreur : Métadonnées introuvables pour le fichier '%s'.\n", nomFichier);
-}
-// Fonction pour effectuer la d�fragmentation des m�tadonn�es en r�organisant les fichiers
-void MisDefragmentation()
-{
-    int indexLibre = 0;
-    int i;
-    // Parcours des m�tadonn�es pour r�organiser les fichiers non supprim�s
-    for (i = 0; i < nombreFichiersMeta; i++)
-    {
-        if (strcmp(fichiersMeta[i].nom_fichier, "SUPPRIME") != 0)
-        {
-            // Copier les données valides à l'index libre
-            if (i != indexLibre)
-            {
-                fichiersMeta[indexLibre] = fichiersMeta[i];
-            }
-            indexLibre++;
-        }
-    }
-    // Mise � jour du nombre r�el de fichiers apr�s la d�fragmentation
-    nombreFichiersMeta = indexLibre; // Met à jour le nombre réel de fichiers
-    printf("Defragmentation completed. %d file(s) retained.\n", nombreFichiersMeta);
+    // Pied du tableau
+    printf("+----------------------+------------+------------+-------------------+-------------------+------------+\n");
 }
