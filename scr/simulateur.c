@@ -9,12 +9,12 @@
 #define MAX_NOM 256
 #define MAX_MODE 20
 
-// Structure reprÃ©sentant un bloc de la mÃ©moire secondaire
+// Structure representant un bloc de la memoire secondaire
 typedef struct {
-    int data[FB];    // DonnÃ©es du bloc
+    int data[FB];    // Donnees du bloc
     int ne;          // Nombre d'enregistrements dans le bloc
-    int nextBlock;   // Adresse du prochain bloc (mode chaÃ®nÃ©)
-    bool libre;      // Indique si le bloc est libre ou occupÃ©
+    int nextBlock;   // Adresse du prochain bloc (mode chainee)
+    bool libre;      // Indique si le bloc est libre ou occupe
     char fichier[50]; // Nom du fichier occupant ce bloc
 } Bloc;
 
@@ -41,14 +41,14 @@ Allocation tableAllocation[MAX_BLOCKS];
 
 
 Bloc memoireSecondaire[MAX_BLOCKS];
-int nombreBlocs; // Nombre total de blocs dans la mÃ©moire secondaire
+int nombreBlocs; // Nombre total de blocs dans la memoire secondaire
 int nombreFichiersMeta = 0; // Nombre de fichiers
 Metadata fichiers[MAX_FILES]; // Tableau des fichiers
 
-// Initialisation de la mÃ©moire secondaire
+// Initialisation de la memoire secondaire
 void initialiserMemoireSecondaire(int nbBlocs) {
     if (nbBlocs > MAX_BLOCKS) {
-        printf("Erreur : Nombre de blocs supÃ©rieur Ã  la capacitÃ© maximale (%d).\n", MAX_BLOCKS);
+        printf("Erreur : Nombre de blocs superieur a  la capacite maximale (%d).\n", MAX_BLOCKS);
         return;
     }
 
@@ -64,7 +64,7 @@ void initialiserMemoireSecondaire(int nbBlocs) {
         tableAllocation[i].libre = true;
         strcpy(tableAllocation[i].fichier, "");
     }
-    printf("MÃ©moire secondaire initialisÃ©e avec %d blocs.\n", nombreBlocs);
+    printf("Memoire secondaire initialisee avec %d blocs.\n", nombreBlocs);
 }
 
 void mettreAJourTableAllocation() {
@@ -84,9 +84,9 @@ void mettreAJourMetadonnees(Metadata *fichier) {
         bloc_courant = memoireSecondaire[bloc_courant].nextBlock;
     }
 
-    // Mise ÃƒÂ  jour des mÃƒÂ©tadonnÃƒÂ©es
+    // Mise a  jour des metadonnees
     fichier->taille_blocs = (tailleEnregistrements + FB - 1) / FB;
-    printf("MÃƒÂ©tadonnÃƒÂ©es mises ÃƒÂ  jour pour le fichier '%s':\n", fichier->nom);
+    printf("Metadonnees mises a  jour pour le fichier '%s':\n", fichier->nom);
     printf("- Taille en blocs : %d\n", fichier->taille_blocs);
     printf("- Taille en enregistrements : %d\n", tailleEnregistrements);
     printf("- Premier bloc : %d\n", fichier->premier_bloc);
@@ -94,7 +94,7 @@ void mettreAJourMetadonnees(Metadata *fichier) {
     printf("- Organisation interne : %s\n", fichier->organisation_interne);
 }
 
-// Charger un fichier en mÃ©moire secondaire
+// Charger un fichier en memoire secondaire
 int chargerFichier(Metadata *fichier) {
     int blocs_necessaires = fichier->taille_blocs;
 
@@ -105,7 +105,7 @@ int chargerFichier(Metadata *fichier) {
         for ( i = 0; i < nombreBlocs; i++) {
             if (memoireSecondaire[i].libre) {
                 if (premier_bloc_libre == -1) 
-                    premier_bloc_libre = i; // DÃ©but d'un espace libre
+                    premier_bloc_libre = i; // Debut d'un espace libre
                 blocs_trouves++;
 
                 if (blocs_trouves == blocs_necessaires) 
@@ -121,12 +121,12 @@ int chargerFichier(Metadata *fichier) {
             return -1;
         }
 
-        // Allouer les blocs contigus trouvÃ©s
+        // Allouer les blocs contigus trouves
        
         for ( i = premier_bloc_libre; i < premier_bloc_libre + blocs_necessaires; i++) {
             memoireSecondaire[i].libre = false;
             strcpy(memoireSecondaire[i].fichier, fichier->nom);
-            memoireSecondaire[i].ne = 0; // Initialiser Ã  0
+            memoireSecondaire[i].ne = 0; // Initialiser a  0
         }
 
         fichier->premier_bloc = premier_bloc_libre;
@@ -167,7 +167,7 @@ int chargerFichier(Metadata *fichier) {
     return 0;
 }
 
-// Fonction pour crÃ©er un fichier et le charger en mÃ©moire secondaire
+// Fonction pour creer un fichier et le charger en memoire secondaire
 void creerFichier() {
     if (nombreFichiersMeta >= MAX_FILES) {
         fprintf(stderr, "Erreur : Limite maximale de fichiers atteinte.\n");
@@ -182,7 +182,7 @@ void creerFichier() {
     printf("Entrez le nombre d'enregistrements : ");
     scanf("%d", &nombreEnregistrements);
 
-    // Calcul du nombre de blocs nÃ©cessaires en fonction du facteur de blocage
+    // Calcul du nombre de blocs necessaires en fonction du facteur de blocage
     fichier.taille_blocs = (nombreEnregistrements + FB - 1) / FB;
 
     printf("Entrez le mode d'organisation globale (contigue ou chainee) : ");
@@ -191,11 +191,11 @@ void creerFichier() {
     printf("Entrez le mode d'organisation interne (triee ou non) : ");
     scanf("%s", fichier.organisation_interne);
 
-    // Charger le fichier en mÃ©moire secondaire
+    // Charger le fichier en memoire secondaire
     if (chargerFichier(&fichier) == 0) {
         fichiers[nombreFichiersMeta] = fichier;
         nombreFichiersMeta++;
-        printf("Fichier crÃ©Ã© et chargÃ© en mÃ©moire secondaire avec succÃ¨s.\n");
+        printf("Fichier crier et charger en memoire secondaire avec succes.\n");
     }
 }
 
@@ -203,7 +203,7 @@ void supprimerFichier() {
     printf("=== Suppression d'un Fichier ===\n");
 
     // Afficher la liste des fichiers
-    printf("SÃƒÂ©lectionnez un fichier ÃƒÂ  partir de la liste suivante pour le supprimer :\n");
+    printf("Selectionnez un fichier a  partir de la liste suivante pour le supprimer :\n");
     int i ;
     for ( i = 0; i < nombreFichiersMeta; i++) {
         printf("%d. %s\n", i + 1, fichiers[i].nom);
@@ -220,7 +220,7 @@ void supprimerFichier() {
 
     Metadata *fichier = &fichiers[fichierIndex - 1];
 
-    // LibÃƒÂ©rer les blocs associÃƒÂ©s au fichier
+    // Liberer les blocs associees au fichier
     int bloc_courant = fichier->premier_bloc;
     while (bloc_courant != -1) {
         memoireSecondaire[bloc_courant].libre = true;
@@ -232,21 +232,21 @@ void supprimerFichier() {
         bloc_courant = nextBloc;
     }
          mettreAJourTableAllocation();
-    // Supprimer les mÃƒÂ©tadonnÃƒÂ©es du fichier
+    // Supprimer les metadonnees du fichier
     
     for ( i = fichierIndex - 1; i < nombreFichiersMeta - 1; i++) {
         fichiers[i] = fichiers[i + 1];
     }
     nombreFichiersMeta--;
 
-    printf("Fichier '%s' supprimÃƒÂ© avec succÃƒÂ¨s.\n", fichier->nom);
+    printf("Fichier '%s' supprimer avec succees.\n", fichier->nom);
 }
 
 void renommerFichier() {
     printf("=== Renommer un Fichier ===\n");
 
     // Afficher la liste des fichiers
-    printf("SÃƒÂ©lectionnez un fichier ÃƒÂ  partir de la liste suivante pour le renommer :\n");
+    printf("Selectionnez un fichier a  partir de la liste suivante pour le renommer :\n");
     int i ;
     for ( i = 0; i < nombreFichiersMeta; i++) {
         printf("%d. %s\n", i + 1, fichiers[i].nom);
@@ -267,28 +267,28 @@ void renommerFichier() {
     char nouveauNom[MAX_NOM];
     scanf("%s", nouveauNom);
 
-    // Mettre ÃƒÂ  jour le nom dans les mÃƒÂ©tadonnÃƒÂ©es
+    // Mettre a  jour le nom dans les metadonnees
     strcpy(fichier->nom, nouveauNom);
 
-    // Mettre ÃƒÂ  jour le nom dans tous les blocs associÃƒÂ©s
+    // Mettre a  jour le nom dans tous les blocs associes
     int bloc_courant = fichier->premier_bloc;
     while (bloc_courant != -1) {
         strcpy(memoireSecondaire[bloc_courant].fichier, nouveauNom);
         bloc_courant = memoireSecondaire[bloc_courant].nextBlock;
     }
           mettreAJourTableAllocation();
-    // Mise ÃƒÂ  jour des mÃƒÂ©tadonnÃƒÂ©es
+    // Mise a  jour des metadonnees
     mettreAJourMetadonnees(fichier);
 
-    printf("Le fichier a ÃƒÂ©tÃƒÂ© renommÃƒÂ© en '%s'.\n", nouveauNom);
+    printf("Le fichier a ete renomme en '%s'.\n", nouveauNom);
 }
 
 
-// Fonction pour insÃƒÂ©rer un enregistrement dans un fichier choisi
+// Fonction pour inserer un enregistrement dans un fichier choisi
 void insererEnregistrement() {
-    // Demander Ã  l'utilisateur de choisir un fichier
+    // Demander a  l'utilisateur de choisir un fichier
     int fichierIndex;
-    printf("SÃ©lectionnez un fichier Ã  partir de la liste suivante:\n");
+    printf("Selectionnez un fichier a  partir de la liste suivante:\n");
     int i ;
     for ( i = 0; i < nombreFichiersMeta; i++) {
         printf("%d. %s\n", i + 1, fichiers[i].nom);
@@ -301,18 +301,18 @@ void insererEnregistrement() {
         return;
     }
 
-    Metadata *fichier = &fichiers[fichierIndex - 1];  // AccÃ©der au fichier choisi
+    Metadata *fichier = &fichiers[fichierIndex - 1];  // Acceder au fichier choisi
 
     // Demander les informations pour l'enregistrement
     Enregistrement enregistrement;
     printf("Entrez l'ID de l'enregistrement : ");
     scanf("%d", &enregistrement.id);
-    printf("Entrez les donnÃ©es de l'enregistrement : ");
+    printf("Entrez les donnees de l'enregistrement : ");
     scanf("%s", enregistrement.data);
 
     if (strcmp(fichier->organisation_globale, "contigue") == 0) {
         if (strcmp(fichier->organisation_interne, "triee") == 0) {
-            // Mode contigu triÃ©
+            // Mode contigu triee
             int premierBloc = fichier->premier_bloc;
             int dernierBloc = premierBloc + fichier->taille_blocs;
             int i ;
@@ -327,20 +327,20 @@ void insererEnregistrement() {
                         }
                     }
                       int k ;
-                    // DÃ©caler les enregistrements si nÃ©cessaire
+                    // Decaler les enregistrements si necessaire
                     for ( k = memoireSecondaire[i].ne; k > j; k--) {
                         memoireSecondaire[i].data[k] = memoireSecondaire[i].data[k - 1];
                     }
 
-                    // InsÃ©rer l'enregistrement Ã  la bonne position
+                    // Inserer l'enregistrement a  la bonne position
                     memoireSecondaire[i].data[j] = enregistrement.id;
                     memoireSecondaire[i].ne++;
-                    printf("Enregistrement insÃ©rÃ© dans le bloc %d Ã  la position %d\n", i, j);
+                    printf("Enregistrement insere dans le bloc %d a  la position %d\n", i, j);
                     return;
                 }
             }
         } else {
-            // Mode contigu non triÃ©
+            // Mode contigu non triee
             int premierBloc = fichier->premier_bloc;
             int dernierBloc = premierBloc + fichier->taille_blocs;
              int i ;
@@ -349,20 +349,20 @@ void insererEnregistrement() {
                     // Ajouter l'enregistrement dans le premier espace disponible
                     memoireSecondaire[i].data[memoireSecondaire[i].ne] = enregistrement.id;
                     memoireSecondaire[i].ne++;
-                    printf("Enregistrement insÃ©rÃ© dans le bloc %d\n", i);
+                    printf("Enregistrement insere dans le bloc %d\n", i);
                     return;
                 }
             }
         }
     } else if (strcmp(fichier->organisation_globale, "chainee") == 0) {
-        // Mode chaÃ®nÃ©
+        // Mode chainee
         int bloc_courant = fichier->premier_bloc;
 
         while (bloc_courant != -1) {
             if (memoireSecondaire[bloc_courant].ne < FB) {
                 memoireSecondaire[bloc_courant].data[memoireSecondaire[bloc_courant].ne] = enregistrement.id;
                 memoireSecondaire[bloc_courant].ne++;
-                printf("Enregistrement insÃ©rÃ© dans le bloc %d\n", bloc_courant);
+                printf("Enregistrement insere dans le bloc %d\n", bloc_courant);
                 return;
             }
             bloc_courant = memoireSecondaire[bloc_courant].nextBlock;
@@ -371,14 +371,14 @@ void insererEnregistrement() {
         printf("Mode d'organisation inconnu : %s\n", fichier->organisation_globale);
     }
 
-    printf("Aucun espace disponible pour insÃ©rer l'enregistrement.\n");
+    printf("Aucun espace disponible pour inserer l'enregistrement.\n");
 }
 
 void rechercherEnregistrementParID() {
     printf("=== Recherche d'Enregistrement par ID ===\n");
 
     // Afficher la liste des fichiers
-    printf("SÃƒÂ©lectionnez un fichier ÃƒÂ  partir de la liste suivante pour effectuer la recherche :\n");
+    printf("Selectionnez un fichier a  partir de la liste suivante pour effectuer la recherche :\n");
     int i ;
     for ( i = 0; i < nombreFichiersMeta; i++) {
         printf("%d. %s\n", i + 1, fichiers[i].nom);
@@ -396,21 +396,21 @@ void rechercherEnregistrementParID() {
     Metadata *fichier = &fichiers[fichierIndex - 1];
 
     int id;
-    printf("Entrez l'ID de l'enregistrement ÃƒÂ  rechercher : ");
+    printf("Entrez l'ID de l'enregistrement a  rechercher : ");
     scanf("%d", &id);
 
     // Recherche en fonction du mode d'organisation globale et interne
     if (strcmp(fichier->organisation_globale, "contigue") == 0) {
-        // Mode contiguÃƒÂ«
+        // Mode contigue
         int i ;
         for (i = fichier->premier_bloc; i < fichier->premier_bloc + fichier->taille_blocs; i++) {
             if (strcmp(fichier->organisation_interne, "triee") == 0) {
-                // Recherche binaire (mode triÃƒÂ©)
+                // Recherche binaire (mode triee)
                 int gauche = 0, droite = memoireSecondaire[i].ne - 1;
                 while (gauche <= droite) {
                     int milieu = (gauche + droite) / 2;
                     if (memoireSecondaire[i].data[milieu] == id) {
-                        printf("Enregistrement trouvÃƒÂ© : Bloc %d, Position %d\n", i, milieu);
+                        printf("Enregistrement trouve : Bloc %d, Position %d\n", i, milieu);
                         return;
                     } else if (memoireSecondaire[i].data[milieu] < id) {
                         gauche = milieu + 1;
@@ -419,27 +419,27 @@ void rechercherEnregistrementParID() {
                     }
                 }
             } else {
-                // Recherche linÃƒÂ©aire (mode non triÃƒÂ©)
+                // Recherche linÃƒÂ©aire (mode non triee)
                 int j ;
                 for ( j = 0; j < memoireSecondaire[i].ne; j++) {
                     if (memoireSecondaire[i].data[j] == id) {
-                        printf("Enregistrement trouvÃƒÂ© : Bloc %d, Position %d\n", i, j);
+                        printf("Enregistrement trouve : Bloc %d, Position %d\n", i, j);
                         return;
                     }
                 }
             }
         }
     } else if (strcmp(fichier->organisation_globale, "chainee") == 0) {
-        // Mode chaÃƒÂ®nÃƒÂ©
+        // Mode chainee
         int bloc_courant = fichier->premier_bloc;
         while (bloc_courant != -1) {
             if (strcmp(fichier->organisation_interne, "triee") == 0) {
-                // Recherche binaire (mode triÃƒÂ©)
+                // Recherche binaire (mode trie)
                 int gauche = 0, droite = memoireSecondaire[bloc_courant].ne - 1;
                 while (gauche <= droite) {
                     int milieu = (gauche + droite) / 2;
                     if (memoireSecondaire[bloc_courant].data[milieu] == id) {
-                        printf("Enregistrement trouvÃƒÂ© : Bloc %d, Position %d\n", bloc_courant, milieu);
+                        printf("Enregistrement trouve : Bloc %d, Position %d\n", bloc_courant, milieu);
                         return;
                     } else if (memoireSecondaire[bloc_courant].data[milieu] < id) {
                         gauche = milieu + 1;
@@ -448,11 +448,11 @@ void rechercherEnregistrementParID() {
                     }
                 }
             } else {
-                // Recherche linÃƒÂ©aire (mode non triÃƒÂ©)
+                // Recherche linÃƒÂ©aire (mode non trie)
                 int j ;
                 for ( j = 0; j < memoireSecondaire[bloc_courant].ne; j++) {
                     if (memoireSecondaire[bloc_courant].data[j] == id) {
-                        printf("Enregistrement trouvÃƒÂ© : Bloc %d, Position %d\n", bloc_courant, j);
+                        printf("Enregistrement trouve : Bloc %d, Position %d\n", bloc_courant, j);
                         return;
                     }
                 }
@@ -464,7 +464,7 @@ void rechercherEnregistrementParID() {
         return;
     }
 
-    printf("Enregistrement avec ID %d non trouvÃƒÂ©.\n", id);
+    printf("Enregistrement avec ID %d non trouve.\n", id);
 }
 
 
@@ -472,7 +472,7 @@ void supprimerEnregistrementLogique() {
     printf("=== Suppression Logique ===\n");
 
     // Afficher la liste des fichiers
-    printf("SÃƒÂ©lectionnez un fichier ÃƒÂ  partir de la liste suivante:\n");
+    printf("Selectionnez un fichier a  partir de la liste suivante:\n");
     int i ;
     for ( i = 0; i < nombreFichiersMeta; i++) {
         printf("%d. %s\n", i + 1, fichiers[i].nom);
@@ -503,7 +503,7 @@ void supprimerEnregistrementLogique() {
     }
 
     int id;
-    printf("Entrez l'ID de l'enregistrement ÃƒÂ  supprimer : ");
+    printf("Entrez l'ID de l'enregistrement a  supprimer : ");
     scanf("%d", &id);
 
     // Suppression logique
@@ -513,23 +513,23 @@ void supprimerEnregistrementLogique() {
         for ( j = 0; j < memoireSecondaire[bloc_courant].ne; j++) {
             if (memoireSecondaire[bloc_courant].data[j] == id) {
                 memoireSecondaire[bloc_courant].data[j] = -1; // Suppression logique
-                printf("Enregistrement %d supprimÃƒÂ© logiquement du bloc %d\n", id, bloc_courant);
+                printf("Enregistrement %d supprime logiquement du bloc %d\n", id, bloc_courant);
                 mettreAJourTableAllocation();
-                mettreAJourMetadonnees(fichier); // Mise ÃƒÂ  jour des mÃƒÂ©tadonnÃƒÂ©es
+                mettreAJourMetadonnees(fichier); // Mise a  jour des metadonnees
                 return;
             }
         }
         bloc_courant = memoireSecondaire[bloc_courant].nextBlock;
     }
 
-    printf("Enregistrement non trouvÃƒÂ©.\n");
+    printf("Enregistrement non trouve.\n");
 }
 
 void supprimerEnregistrementPhysique() {
     printf("=== Suppression Physique ===\n");
 
     // Afficher la liste des fichiers
-    printf("SÃƒÂ©lectionnez un fichier ÃƒÂ  partir de la liste suivante:\n");
+    printf("Selectionnez un fichier a  partir de la liste suivante:\n");
     int i ;
     for ( i = 0; i < nombreFichiersMeta; i++) {
         printf("%d. %s\n", i + 1, fichiers[i].nom);
@@ -560,7 +560,7 @@ void supprimerEnregistrementPhysique() {
     }
 
     int id;
-    printf("Entrez l'ID de l'enregistrement ÃƒÂ  supprimer : ");
+    printf("Entrez l'ID de l'enregistrement a  supprimer : ");
     scanf("%d", &id);
 
     // Suppression physique
@@ -573,23 +573,23 @@ void supprimerEnregistrementPhysique() {
                     memoireSecondaire[bloc_courant].data[k] = memoireSecondaire[bloc_courant].data[k + 1];
                 }
                 memoireSecondaire[bloc_courant].ne--;
-                printf("Enregistrement %d supprimÃƒÂ© physiquement du bloc %d\n", id, bloc_courant);
+                printf("Enregistrement %d supprime physiquement du bloc %d\n", id, bloc_courant);
                 mettreAJourTableAllocation();
-                mettreAJourMetadonnees(fichier); // Mise ÃƒÂ  jour des mÃƒÂ©tadonnÃƒÂ©es
+                mettreAJourMetadonnees(fichier); // Mise a  jour des metadonnees
                 return;
             }
         }
         bloc_courant = memoireSecondaire[bloc_courant].nextBlock;
     }
 
-    printf("Enregistrement non trouvÃƒÂ©.\n");
+    printf("Enregistrement non trouve.\n");
 }
 
 void defragmenterFichier() {
-    printf("=== DÃƒÂ©fragmentation ===\n");
+    printf("=== Defragmentation ===\n");
 
     // Afficher la liste des fichiers
-    printf("SÃƒÂ©lectionnez un fichier ÃƒÂ  partir de la liste suivante:\n");
+    printf("Selectionnez un fichier a  partir de la liste suivante:\n");
     int i ;
     for ( i = 0; i < nombreFichiersMeta; i++) {
         printf("%d. %s\n", i + 1, fichiers[i].nom);
@@ -621,7 +621,7 @@ void defragmenterFichier() {
         bloc_courant = memoireSecondaire[bloc_courant].nextBlock;
     }
 
-    // RÃƒÂ©ÃƒÂ©crire les enregistrements
+    // Reecrire les enregistrements
     bloc_courant = fichier->premier_bloc;
     pos = 0;
     while (bloc_courant != -1) {
@@ -634,15 +634,15 @@ void defragmenterFichier() {
         bloc_courant = memoireSecondaire[bloc_courant].nextBlock;
     }
 
-    printf("DÃƒÂ©fragmentation terminÃƒÂ©e pour '%s'.\n", fichier->nom);
+    printf("Defragmentation terminee pour '%s'.\n", fichier->nom);
     mettreAJourTableAllocation();
-    mettreAJourMetadonnees(fichier); // Mise ÃƒÂ  jour des mÃƒÂ©tadonnÃƒÂ©es
+    mettreAJourMetadonnees(fichier); // Mise a  jour des metadonnees
 }
 
 void viderMemoire() {
-    printf("=== Vider la MÃƒÂ©moire Secondaire ===\n");
+    printf("=== Vider la Memoire Secondaire ===\n");
 
-    // RÃƒÂ©initialiser tous les blocs de mÃƒÂ©moire secondaire
+    // Reinitialiser tous les blocs de memoire secondaire
     int i ;
     for (i = 0; i < nombreBlocs; i++) {
         memoireSecondaire[i].libre = true;
@@ -651,15 +651,15 @@ void viderMemoire() {
         strcpy(memoireSecondaire[i].fichier, "");
     }
       mettreAJourTableAllocation();
-    // RÃƒÂ©initialiser toutes les mÃƒÂ©tadonnÃƒÂ©es
+    // Reinitialiser toutes les metadonnees
     nombreFichiersMeta = 0;
-    printf("MÃƒÂ©moire secondaire vidÃƒÂ©e avec succÃƒÂ¨s. Tous les fichiers et blocs ont ÃƒÂ©tÃƒÂ© rÃƒÂ©initialisÃƒÂ©s.\n");
+    printf("Memoire secondaire videe avec succes. Tous les fichiers et blocs ont ÃƒÂ©tÃƒÂ© reinitialises.\n");
 }
 void compactageMemoire() {
     int i, j;
     int prochainBlocLibre = 0;  // Premier bloc libre disponible pour le compactage
     
-    // RÃ©initialiser les blocs libres
+    // Reinitialiser les blocs libres
     for (i = 0; i < nombreBlocs; i++) {
         memoireSecondaire[i].libre = true;
         strcpy(memoireSecondaire[i].fichier, "");
@@ -667,13 +667,13 @@ void compactageMemoire() {
         memoireSecondaire[i].nextBlock = -1;
     }
 
-    // Recharger les fichiers en mÃ©moire aprÃ¨s le compactage
+    // Recharger les fichiers en memoire apres le compactage
     for (i = 0; i < nombreFichiersMeta; i++) {
         Metadata *fichier = &fichiers[i];
         int premierBlocCompacte = -1, precedentBloc = -1;
         int blocsAlloues = 0;
 
-        // Allouer les blocs de maniÃ¨re contiguÃ«
+        // Allouer les blocs de maniere contigue
         for (j = 0; j < fichier->taille_blocs; j++) {
             if (prochainBlocLibre < nombreBlocs) {
                 // Allouer un bloc pour le fichier
@@ -682,7 +682,7 @@ void compactageMemoire() {
                 memoireSecondaire[prochainBlocLibre].ne = 0;
 
                 if (premierBlocCompacte == -1) {
-                    premierBlocCompacte = prochainBlocLibre;  // DÃ©finir le premier bloc
+                    premierBlocCompacte = prochainBlocLibre;  // Definir le premier bloc
                 }
                 if (precedentBloc != -1) {
                     memoireSecondaire[precedentBloc].nextBlock = prochainBlocLibre;
@@ -697,7 +697,7 @@ void compactageMemoire() {
             }
         }
 
-        // Mettre Ã  jour les mÃ©tadonnÃ©es du fichier
+        // Mettre a  jour les metadonnees du fichier
         fichier->premier_bloc = premierBlocCompacte;
         mettreAJourMetadonnees(fichier);
     }
@@ -725,20 +725,20 @@ void afficherEtatMemoire() {
 }
 
 void afficherMetadonnees() {
-    printf("=== MÃƒÂ©tadonnÃƒÂ©es des Fichiers ===\n");
+    printf("=== Metadonnees des Fichiers ===\n");
 
     if (nombreFichiersMeta == 0) {
-        printf("Aucun fichier n'est actuellement enregistrÃƒÂ©.\n");
+        printf("Aucun fichier n'est actuellement enregistre.\n");
         return;
     }
 
-    // En-tÃƒÂªte du tableau
+    // En-tete du tableau
     printf("+----------------------+------------+------------+-------------------+-------------------+------------+\n");
     printf("| %-20s | %-10s | %-10s | %-17s | %-17s | %-10s |\n", 
            "Nom du fichier", "Blocs", "Enreg.", "Org. Globale", "Org. Interne", "Premier Bloc");
     printf("+----------------------+------------+------------+-------------------+-------------------+------------+\n");
 
-    // Affichage des mÃƒÂ©tadonnÃƒÂ©es pour chaque fichier
+    // Affichage des metadonnees pour chaque fichier
     int i ;
     for ( i = 0; i < nombreFichiersMeta; i++) {
         Metadata *fichier = &fichiers[i];
@@ -779,7 +779,7 @@ int main() {
 
         switch (choix) {
             case 1:
-                printf("Nombre de blocs dans la mÃƒÂ©moire secondaire : ");
+                printf("Nombre de blocs dans la memoire secondaire : ");
                 int nbBlocs;
                 scanf("%d", &nbBlocs);
                 initialiserMemoireSecondaire(nbBlocs);
@@ -827,7 +827,7 @@ int main() {
 			 printf("Au revoir !\n");
 			 break;	
             default:
-                printf("Option invalide. Veuillez rÃƒÂ©essayer.\n");
+                printf("Option invalide. Veuillez reessayer.\n");
         }
     } while (choix != 15);
 
