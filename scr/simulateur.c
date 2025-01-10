@@ -703,7 +703,7 @@ void compactageMemoire() {
     }
         
         mettreAJourTableAllocation() ;
-    printf("Le compactage de la mÃ©moire secondaire a Ã©tÃ© effectuÃ© avec succÃ¨s.\n");
+    printf("Le compactage de la memoire secondaire a ete effectue avec succes.\n");
 }
 
 
