@@ -286,9 +286,11 @@ void renommerFichier() {
 
 // Fonction pour inserer un enregistrement dans un fichier choisi
 void insererEnregistrement() {
-    // Demander a  l'utilisateur de choisir un fichier
+    printf("=== Insérer un Enregistrement ===\n");
+
+    // Demander à l'utilisateur de choisir un fichier
     int fichierIndex;
-    printf("Selectionnez un fichier a  partir de la liste suivante:\n");
+    printf("Sélectionnez un fichier à partir de la liste suivante:\n");
     int i ;
     for ( i = 0; i < nombreFichiersMeta; i++) {
         printf("%d. %s\n", i + 1, fichiers[i].nom);
@@ -301,79 +303,139 @@ void insererEnregistrement() {
         return;
     }
 
-    Metadata *fichier = &fichiers[fichierIndex - 1];  // Acceder au fichier choisi
+    Metadata *fichier = &fichiers[fichierIndex - 1];  // Accéder au fichier choisi
 
     // Demander les informations pour l'enregistrement
     Enregistrement enregistrement;
     printf("Entrez l'ID de l'enregistrement : ");
     scanf("%d", &enregistrement.id);
-    printf("Entrez les donnees de l'enregistrement : ");
+    printf("Entrez les données de l'enregistrement : ");
     scanf("%s", enregistrement.data);
 
+    // Vérification de l'unicité de l'ID
+    if (strcmp(fichier->organisation_globale, "contigue") == 0) {
+        int premierBloc = fichier->premier_bloc;
+        int dernierBloc = premierBloc + fichier->taille_blocs;
+          int i ; int j ;
+        for ( i = premierBloc; i < dernierBloc; i++) {
+            for ( j = 0; j < memoireSecondaire[i].ne; j++) {
+                if (memoireSecondaire[i].data[j] == enregistrement.id) {
+                    printf("Erreur : L'ID %d existe déjà dans le fichier '%s'.\n", enregistrement.id, fichier->nom);
+                    return;
+                }
+            }
+        }
+    } else if (strcmp(fichier->organisation_globale, "chainee") == 0) {
+        int bloc_courant = fichier->premier_bloc;
+
+        while (bloc_courant != -1) {
+        	int j ;
+            for ( j = 0; j < memoireSecondaire[bloc_courant].ne; j++) {
+                if (memoireSecondaire[bloc_courant].data[j] == enregistrement.id) {
+                    printf("Erreur : L'ID %d existe déjà dans le fichier '%s'.\n", enregistrement.id, fichier->nom);
+                    return;
+                }
+            }
+            bloc_courant = memoireSecondaire[bloc_courant].nextBlock;
+        }
+    } else {
+        printf("Mode d'organisation inconnu : %s\n", fichier->organisation_globale);
+        return;
+    }
+
+    // Si l'ID est unique, insérer l'enregistrement
     if (strcmp(fichier->organisation_globale, "contigue") == 0) {
         if (strcmp(fichier->organisation_interne, "triee") == 0) {
-            // Mode contigu triee
+            // Mode contigu trié
             int premierBloc = fichier->premier_bloc;
             int dernierBloc = premierBloc + fichier->taille_blocs;
             int i ;
 
             for ( i = premierBloc; i < dernierBloc; i++) {
                 if (memoireSecondaire[i].ne < FB) {
-                    // Trouver la bonne position dans le bloc triÃ©
+                    // Trouver la bonne position dans le bloc trié
                     int j;
                     for (j = 0; j < memoireSecondaire[i].ne; j++) {
                         if (memoireSecondaire[i].data[j] > enregistrement.id) {
                             break;
                         }
                     }
-                      int k ;
-                    // Decaler les enregistrements si necessaire
+                    // Décaler les enregistrements si nécessaire
+                    int k ;
                     for ( k = memoireSecondaire[i].ne; k > j; k--) {
                         memoireSecondaire[i].data[k] = memoireSecondaire[i].data[k - 1];
                     }
-
-                    // Inserer l'enregistrement a  la bonne position
+                    // Insérer l'enregistrement à la bonne position
                     memoireSecondaire[i].data[j] = enregistrement.id;
                     memoireSecondaire[i].ne++;
-                    printf("Enregistrement insere dans le bloc %d a  la position %d\n", i, j);
+                    printf("Enregistrement inséré dans le bloc %d à la position %d\n", i, j);
                     return;
                 }
             }
         } else {
-            // Mode contigu non triee
+            // Mode contigu non trié
             int premierBloc = fichier->premier_bloc;
             int dernierBloc = premierBloc + fichier->taille_blocs;
-             int i ;
+            int i ;
+
             for ( i = premierBloc; i < dernierBloc; i++) {
                 if (memoireSecondaire[i].ne < FB) {
                     // Ajouter l'enregistrement dans le premier espace disponible
                     memoireSecondaire[i].data[memoireSecondaire[i].ne] = enregistrement.id;
                     memoireSecondaire[i].ne++;
-                    printf("Enregistrement insere dans le bloc %d\n", i);
+                    printf("Enregistrement inséré dans le bloc %d\n", i);
                     return;
                 }
             }
         }
     } else if (strcmp(fichier->organisation_globale, "chainee") == 0) {
-        // Mode chainee
-        int bloc_courant = fichier->premier_bloc;
+        if (strcmp(fichier->organisation_interne, "triee") == 0) {
+            // Mode chaîné trié
+            int bloc_courant = fichier->premier_bloc;
 
-        while (bloc_courant != -1) {
-            if (memoireSecondaire[bloc_courant].ne < FB) {
-                memoireSecondaire[bloc_courant].data[memoireSecondaire[bloc_courant].ne] = enregistrement.id;
-                memoireSecondaire[bloc_courant].ne++;
-                printf("Enregistrement insere dans le bloc %d\n", bloc_courant);
-                return;
+            while (bloc_courant != -1) {
+                if (memoireSecondaire[bloc_courant].ne < FB) {
+                    // Trouver la bonne position dans le bloc trié
+                    int j;
+                    for (j = 0; j < memoireSecondaire[bloc_courant].ne; j++) {
+                        if (memoireSecondaire[bloc_courant].data[j] > enregistrement.id) {
+                            break;
+                        }
+                    }
+                    // Décaler les enregistrements si nécessaire
+                    int k ;
+                    for ( k = memoireSecondaire[bloc_courant].ne; k > j; k--) {
+                        memoireSecondaire[bloc_courant].data[k] = memoireSecondaire[bloc_courant].data[k - 1];
+                    }
+                    // Insérer l'enregistrement à la bonne position
+                    memoireSecondaire[bloc_courant].data[j] = enregistrement.id;
+                    memoireSecondaire[bloc_courant].ne++;
+                    printf("Enregistrement inséré (trié) dans le bloc %d à la position %d\n", bloc_courant, j);
+                    return;
+                }
+                bloc_courant = memoireSecondaire[bloc_courant].nextBlock;
             }
-            bloc_courant = memoireSecondaire[bloc_courant].nextBlock;
+        } else {
+            // Mode chaîné non trié
+            int bloc_courant = fichier->premier_bloc;
+
+            while (bloc_courant != -1) {
+                if (memoireSecondaire[bloc_courant].ne < FB) {
+                    // Ajouter l'enregistrement dans le premier espace disponible
+                    memoireSecondaire[bloc_courant].data[memoireSecondaire[bloc_courant].ne] = enregistrement.id;
+                    memoireSecondaire[bloc_courant].ne++;
+                    printf("Enregistrement inséré dans le bloc %d\n", bloc_courant);
+                    return;
+                }
+                bloc_courant = memoireSecondaire[bloc_courant].nextBlock;
+            }
         }
     } else {
         printf("Mode d'organisation inconnu : %s\n", fichier->organisation_globale);
     }
 
-    printf("Aucun espace disponible pour inserer l'enregistrement.\n");
+    printf("Aucun espace disponible pour insérer l'enregistrement.\n");
 }
-
 void rechercherEnregistrementParID() {
     printf("=== Recherche d'Enregistrement par ID ===\n");
 
